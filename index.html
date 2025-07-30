@@ -6,6 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;800&display=swap" rel="stylesheet">
 	</head>
 	<body class="is-preload">
 		<div id="page-wrapper">
@@ -13,7 +14,7 @@
 			<div id="header">
 
 					<h1><a href="index.html" id="logo">
-                            <img src="assets/images/namyang_logo.png" alt="남양유업 로고" style="height: 3em; vertical-align: middle;"> 
+                            <img src="assets/images/namyang_logo.png" alt="남양유업 로고">
                             </a></h1>
 
 					<nav id="nav">
@@ -35,6 +36,7 @@
 											</ul>
 										</li>
 										<li><a href="#">치즈/유아식</a></li>
+                                        <li><a href="#">기타 제품</a></li>
 									</ul>
 								</li>
 								<li><a href="#">지속가능경영</a></li>
@@ -51,7 +53,7 @@
 
 			<section id="banner" class="slider-container">
 					<div class="slider-item active">
-						<img src="assets/images/banner1.jpg" alt="건강한 시작, 남양" class="slider-background-image">
+                        <img src="assets/images/banner1.jpg" alt="건강한 시작, 남양" class="slider-background-image">
 						<div class="slider-content">
 							<h2>건강한 시작, 남양</h2>
 							<p>보다 새로워진 마음으로<br>모두의 건강한 시작에 함께합니다.</p>
@@ -63,7 +65,7 @@
 						</div>
 				</section>
 
-            <section class="wrapper style1">
+			<section class="wrapper style1">
 					<div class="container">
 						<div class="row gtr-200">
 							<section class="col-4 col-12-narrower">
@@ -78,7 +80,7 @@
 									<i class="icon solid major fa-pencil-alt"></i>
 									<h3>이것도 중요해요</h3>
 									<p>이건 예시 텍스트입니다. 실제로는 여기에 당신의 사업 설명을 넣을 수 있습니다.</p>
-								</section>
+								</div>
 							</section>
 							<section class="col-4 col-12-narrower">
 								<div class="box highlight">
@@ -142,12 +144,14 @@
                         currentIndex = 0,
                         autoplayInterval;
 
+                    // 현재 활성 슬라이드를 보여주고 점을 업데이트하는 함수
                     function showSlide(index) {
                         $items.removeClass('active').eq(index).addClass('active');
                         $dots.removeClass('active').eq(index).addClass('active');
                         currentIndex = index;
                     }
 
+                    // 자동 재생 시작 함수
                     function startAutoplay() {
                         autoplayInterval = setInterval(function() {
                             var nextIndex = (currentIndex + 1) % $items.length;
@@ -155,20 +159,23 @@
                         }, 5000); // 5초마다 슬라이드 변경
                     }
 
+                    // 자동 재생 정지 함수
                     function stopAutoplay() {
                         clearInterval(autoplayInterval);
                     }
 
-                    // Dot 클릭 이벤트
+                    // Dot 클릭 이벤트 핸들러
                     $dots.on('click', function() {
-                        stopAutoplay();
-                        showSlide($(this).data('slide'));
+                        stopAutoplay(); // 점 클릭 시 자동 재생 잠시 정지
+                        showSlide($(this).data('slide')); // 클릭된 점에 해당하는 슬라이드 표시
                         startAutoplay(); // 다시 자동 재생 시작
                     });
 
-                    // 초기화
-                    showSlide(0);
-                    startAutoplay();
+                    // 초기화: 첫 번째 슬라이드 표시 및 자동 재생 시작
+                    if ($items.length > 0) { // 슬라이드 아이템이 있을 때만 실행
+                        showSlide(0);
+                        startAutoplay();
+                    }
                 });
             </script>
 
