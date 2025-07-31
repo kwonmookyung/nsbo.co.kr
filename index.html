@@ -5,235 +5,386 @@
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <html>
-	<head>
-		<title>Arcana by HTML5 UP</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-	</head>
-	<body class="is-preload">
-		<div id="page-wrapper">
 
-			<!-- Header -->
-				<div id="header">
+<head>
+	<title>Arcana by HTML5 UP</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<style>
+		input[type="submit"].fit,
+		input[type="reset"].fit,
+		input[type="button"].fit,
+		button.fit,
+		.button.fit {
+			width: 100%;
+		}
 
-					<!-- Logo -->
-						<h1><a href="index.html" id="logo">Arcana <em>by HTML5 UP</em></a></h1>
+		input[type="submit"].small,
+		input[type="reset"].small,
+		input[type="button"].small,
+		button.small,
+		.button.small {
+			font-size: 0.8em;
+		}
 
-					<!-- Nav -->
-						<nav id="nav">
-							<ul>
-								<li class="current"><a href="index.html">Home</a></li>
-								<li>
-									<a href="#">Dropdown</a>
-									<ul>
-										<li><a href="#">Lorem dolor</a></li>
-										<li><a href="#">Magna phasellus</a></li>
-										<li><a href="#">Etiam sed tempus</a></li>
-										<li>
-											<a href="#">Submenu</a>
-											<ul>
-												<li><a href="#">Lorem dolor</a></li>
-												<li><a href="#">Phasellus magna</a></li>
-												<li><a href="#">Magna phasellus</a></li>
-												<li><a href="#">Etiam nisl</a></li>
-												<li><a href="#">Veroeros feugiat</a></li>
-											</ul>
-										</li>
-										<li><a href="#">Veroeros feugiat</a></li>
-									</ul>
-								</li>
-								<li><a href="left-sidebar.html">Left Sidebar</a></li>
-								<li><a href="right-sidebar.html">Right Sidebar</a></li>
-								<li><a href="two-sidebar.html">Two Sidebar</a></li>
-								<li><a href="no-sidebar.html">No Sidebar</a></li>
-							</ul>
-						</nav>
+		/* 배너 슬라이드용 */
+		.slider-container {
+			position: relative;
+			width: 100%;
+			min-height: 100vh;
+			margin: auto;
+			overflow: hidden;
+		}
 
-				</div>
+		.slide {
+			display: none;
+			position: relative;
+			/* 부모가 높이 감지하게 함 */
+		}
 
-			<!-- Banner -->
-				<section id="banner">
-					<header>
-						<h2>Arcana: <em>A responsive site template freebie by <a href="http://html5up.net">HTML5 UP</a></em></h2>
-						<a href="#" class="button">Learn More</a>
-					</header>
-				</section>
+		.slide img {
+			width: 100%;
+			height: auto;
+			aspect-ratio: 16 / 9;
+			object-fit: cover;
+			display: block;
+		}
 
-			<!-- Highlights -->
-				<section class="wrapper style1">
-					<div class="container">
-						<div class="row gtr-200">
-							<section class="col-4 col-12-narrower">
-								<div class="box highlight">
-									<i class="icon solid major fa-paper-plane"></i>
-									<h3>This Is Important</h3>
-									<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-								</div>
-							</section>
-							<section class="col-4 col-12-narrower">
-								<div class="box highlight">
-									<i class="icon solid major fa-pencil-alt"></i>
-									<h3>Also Important</h3>
-									<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-								</div>
-							</section>
-							<section class="col-4 col-12-narrower">
-								<div class="box highlight">
-									<i class="icon solid major fa-wrench"></i>
-									<h3>Probably Important</h3>
-									<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-								</div>
-							</section>
-						</div>
-					</div>
-				</section>
+		/* 배너와 헤더 겹침 방지 + 아래 콘텐츠 여유 */
+		#banner {
+			margin-top: 80px;
+			margin-bottom: 4em;
+			position: relative;
+			z-index: 1;
+		}
 
-			<!-- Gigantic Heading -->
-				<section class="wrapper style2">
-					<div class="container">
-						<header class="major">
-							<h2>A gigantic heading you can use for whatever</h2>
-							<p>With a much smaller subtitle hanging out just below it</p>
-						</header>
-					</div>
-				</section>
+		.fade {
+			animation-name: fade;
+			animation-duration: 1s;
+		}
 
-			<!-- Posts -->
-				<section class="wrapper style1">
-					<div class="container">
-						<div class="row">
-							<section class="col-6 col-12-narrower">
-								<div class="box post">
-									<a href="#" class="image left"><img src="images/pic01.jpg" alt="" /></a>
-									<div class="inner">
-										<h3>The First Thing</h3>
-										<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-									</div>
-								</div>
-							</section>
-							<section class="col-6 col-12-narrower">
-								<div class="box post">
-									<a href="#" class="image left"><img src="images/pic02.jpg" alt="" /></a>
-									<div class="inner">
-										<h3>The Second Thing</h3>
-										<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-									</div>
-								</div>
-							</section>
-						</div>
-						<div class="row">
-							<section class="col-6 col-12-narrower">
-								<div class="box post">
-									<a href="#" class="image left"><img src="images/pic03.jpg" alt="" /></a>
-									<div class="inner">
-										<h3>The Third Thing</h3>
-										<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-									</div>
-								</div>
-							</section>
-							<section class="col-6 col-12-narrower">
-								<div class="box post">
-									<a href="#" class="image left"><img src="images/pic04.jpg" alt="" /></a>
-									<div class="inner">
-										<h3>The Fourth Thing</h3>
-										<p>Duis neque nisi, dapibus sed mattis et quis, nibh. Sed et dapibus nisl amet mattis, sed a rutrum accumsan sed. Suspendisse eu.</p>
-									</div>
-								</div>
-							</section>
-						</div>
-					</div>
-				</section>
+		@keyframes fade {
+			from {
+				opacity: 0.4;
+			}
 
-			<!-- CTA -->
-				<section id="cta" class="wrapper style3">
-					<div class="container">
-						<header>
-							<h2>Are you ready to continue your quest?</h2>
-							<a href="#" class="button">Insert Coin</a>
-						</header>
-					</div>
-				</section>
+			to {
+				opacity: 1;
+			}
+		}
 
-			<!-- Footer -->
-				<div id="footer">
-					<div class="container">
-						<div class="row">
-							<section class="col-3 col-6-narrower col-12-mobilep">
-								<h3>Links to Stuff</h3>
-								<ul class="links">
-									<li><a href="#">Mattis et quis rutrum</a></li>
-									<li><a href="#">Suspendisse amet varius</a></li>
-									<li><a href="#">Sed et dapibus quis</a></li>
-									<li><a href="#">Rutrum accumsan dolor</a></li>
-									<li><a href="#">Mattis rutrum accumsan</a></li>
-									<li><a href="#">Suspendisse varius nibh</a></li>
-									<li><a href="#">Sed et dapibus mattis</a></li>
-								</ul>
-							</section>
-							<section class="col-3 col-6-narrower col-12-mobilep">
-								<h3>More Links to Stuff</h3>
-								<ul class="links">
-									<li><a href="#">Duis neque nisi dapibus</a></li>
-									<li><a href="#">Sed et dapibus quis</a></li>
-									<li><a href="#">Rutrum accumsan sed</a></li>
-									<li><a href="#">Mattis et sed accumsan</a></li>
-									<li><a href="#">Duis neque nisi sed</a></li>
-									<li><a href="#">Sed et dapibus quis</a></li>
-									<li><a href="#">Rutrum amet varius</a></li>
-								</ul>
-							</section>
-							<section class="col-6 col-12-narrower">
-								<h3>Get In Touch</h3>
-								<form>
-									<div class="row gtr-50">
-										<div class="col-6 col-12-mobilep">
-											<input type="text" name="name" id="name" placeholder="Name" />
-										</div>
-										<div class="col-6 col-12-mobilep">
-											<input type="email" name="email" id="email" placeholder="Email" />
-										</div>
-										<div class="col-12">
-											<textarea name="message" id="message" placeholder="Message" rows="5"></textarea>
-										</div>
-										<div class="col-12">
-											<ul class="actions">
-												<li><input type="submit" class="button alt" value="Send Message" /></li>
-											</ul>
-										</div>
-									</div>
-								</form>
-							</section>
-						</div>
-					</div>
+		.dot {
+			height: 12px;
+			width: 12px;
+			margin: 0 5px;
+			background-color: #000000;
+			border-radius: 50%;
+			display: inline-block;
+			transition: background-color 0.3s ease;
+			cursor: pointer;
+		}
 
-					<!-- Icons -->
-						<ul class="icons">
-							<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
-							<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
-							<li><a href="#" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
-							<li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
-							<li><a href="#" class="icon brands fa-google-plus-g"><span class="label">Google+</span></a></li>
+		.dot.active {
+			background-color: #ffffff;
+		}
+
+		/* 모바일 대응: AppBar 숨기고 여백 조정 */
+		#mobile-logo {
+			display: none;
+			position: fixed;
+			top: 1em;
+			left: 1em;
+			font-size: 1.2em;
+			font-weight: bold;
+			color: #000 !important;
+			text-decoration: none;
+			z-index: 2000;
+			background: white;
+			padding: 0.3em 0.6em;
+			border-radius: 4px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+		}
+
+		@media screen and (max-width: 1024px) {
+			#header {
+				display: none !important;
+			}
+
+			#banner {
+				margin-bottom: 6em;
+				/* 여유 있게 */
+			}
+
+			#mobile-logo {
+				display: block !important;
+			}
+
+			a#logo {
+				position: absolute;
+				top: 1em;
+				left: 1em;
+				color: #000 !important;
+				z-index: 999;
+				font-size: 1.2em;
+				text-decoration: none;
+			}
+		}
+	</style>
+</head>
+
+<body class="is-preload">
+	<div id="page-wrapper">
+		<!-- Header -->
+		<div id="header" style="
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 2em;
+	background-color: white;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+">
+
+			<!-- AppBar 로고 -->
+			<div style="font-size: 1.5em; font-weight: bold;">
+				<a href="index.html" id="logo">착한소상공인마켓</a>
+			</div>
+
+			<!-- Nav -->
+			<nav id="nav">
+				<ul>
+					<li class="current"><a href="index.html">홈</a></li>
+					<li>
+						<a href="brand.html">브랜드</a>
+						<ul>
+							<li><a href="brand.html#company-intro">회사소개</a></li>
+							<li><a href="brand.html#ci">회사CI</a></li>
+							<li><a href="brand.html#culture">기업문화</a></li>
+							<li><a href="brand.html#sustainability">지속가능경영</a></li>
+							<li><a href="brand.html#roadmap">로드맵</a></li>
 						</ul>
-
-					<!-- Copyright -->
-						<div class="copyright">
-							<ul class="menu">
-								<li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-							</ul>
-						</div>
-
-				</div>
+					</li>
+					<li><a href="left-sidebar.html">솔루션</a></li>
+					<li><a href="right-sidebar.html">프로그램</a></li>
+					<li><a href="two-sidebar.html">고객문의</a></li>
+					<li><a href="no-sidebar.html">착소마켓</a></li>
+				</ul>
+			</nav>
 
 		</div>
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery.dropotron.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
+		<section id="banner">
+			<div class="slider-container">
+				<div class="slide fade">
+					<img src="images/banner1.jpg" style="width:100%">
+				</div>
+				<div class="slide fade">
+					<img src="images/banner2.jpg" style="width:100%">
+				</div>
+				<div class="slide fade">
+					<img src="images/banner3.jpg" style="width:100%">
+				</div>
+			</div>
+			<!-- 🔵 도트 컨트롤 -->
+			<div class="dots-container" style="text-align:center; position: relative; top: -40px;">
+				<span class="dot" onclick="currentSlide(1)"></span>
+				<span class="dot" onclick="currentSlide(2)"></span>
+				<span class="dot" onclick="currentSlide(3)"></span>
+			</div>
+		</section>
+		<!-- Highlights -->
+		<section class="wrapper style1">
+			<div class="container">
+				<div class="row gtr-200">
+					<section class="col-4 col-12-narrower">
+						<div class="box highlight">
+							<i class="icon solid major fa-paper-plane"></i>
+							<h3>가성비 최고의 마케팅 첫걸음</h3>
+							<p>마케팅이 어려운 사장님들,빅데이터 기반 마케팅으로 즉각적인 매출증대효과를 누려보세요.</p>
+						</div>
+					</section>
+					<section class="col-4 col-12-narrower">
+						<div class="box highlight">
+							<i class="icon solid major fa-pencil-alt"></i>
+							<h3>온·오프라인 통합 마케팅</h3>
+							<p>AI를 활용한 최신 마케팅 기법으로 광고 효율을 극대화하고 마케팅 비용을 절감합니다.</p>
+						</div>
+					</section>
+					<section class="col-4 col-12-narrower">
+						<div class="box highlight">
+							<i class="icon solid major fa-wrench"></i>
+							<h3>매출을 바꾸는 올인원 솔루션</h3>
+							<p>많이 힘드셨죠? 이제 착한소상공인지원센터와 함께라면 달라질겁니다.</p>
+						</div>
+					</section>
+				</div>
+			</div>
+		</section>
 
-	</body>
+		<!-- Gigantic Heading -->
+		<section class="wrapper style2">
+			<div class="container">
+				<header class="major">
+					<h2>"소상공인을 위한 진짜 마케팅, 저희가 대신합니다."</h2>
+					<p>오프라인과 온라인, 놓치지 말아야 할 홍보 채널을 모두 담았습니다.</p>
+				</header>
+			</div>
+		</section>
+
+		<!-- Posts -->
+		<section class="wrapper style1">
+			<div class="container">
+				<div class="row">
+					<section class="col-6 col-12-narrower">
+						<div class="box post">
+							<a href="#" class="image left"><img src="images/1.png" alt="블로그 & 릴스 대행" /></a>
+							<div class="inner">
+								<h3>블로그 & 릴스 대행</h3>
+								<p>전문가가 직접 블로그를 운영하고, 인스타 릴스를 기획·제작합니다. 검색되는 콘텐츠로 고객을 끌어옵니다.</p>
+							</div>
+						</div>
+					</section>
+					<section class="col-6 col-12-narrower">
+						<div class="box post">
+							<a href="#" class="image left"><img src="images/2.png" alt="지역카페 & 체험단 홍보" /></a>
+							<div class="inner">
+								<h3>지역카페 & 체험단 홍보</h3>
+								<p>지역 맘카페, 블로그 체험단을 통한 입소문 마케팅. 신뢰도 있는 리뷰로 매출과 직결되도록 만듭니다.</p>
+							</div>
+						</div>
+					</section>
+				</div>
+				<div class="row">
+					<section class="col-6 col-12-narrower">
+						<div class="box post">
+							<a href="#" class="image left"><img src="images/3.png" alt="메뉴판·포스터·전단지 디자인" /></a>
+							<div class="inner">
+								<h3>메뉴판·포스터·전단지 디자인</h3>
+								<p>디자인부터 인쇄, 배포까지 한 번에. 눈에 띄는 시각 자료는 매장 방문을 부릅니다.</p>
+							</div>
+						</div>
+					</section>
+					<section class="col-6 col-12-narrower">
+						<div class="box post">
+							<a href="#" class="image left"><img src="images/4.png" alt="네이버·배민 상점 관리" /></a>
+							<div class="inner">
+								<h3>네이버·배민 상점 관리</h3>
+								<p>네이버 플레이스, 배달의민족 페이지를 전략적으로 관리해드립니다. 검색 최적화부터 평점 관리까지 책임집니다.</p>
+							</div>
+						</div>
+					</section>
+				</div>
+			</div>
+		</section>
+
+
+		<!-- CTA -->
+		<section id="cta" class="wrapper style3">
+			<div class="container">
+				<header>
+					<h2>소상공인을 위한 솔루션 진행 준비 되셨나요?</h2>
+					<a href="#" class="button">문의하기</a>
+				</header>
+			</div>
+		</section>
+		<!-- Footer -->
+		<footer id="footer">
+			<div class="container">
+				<section>
+					<h3>회사 정보</h3>
+					<p>
+						상호명: 착한소상공인마켓<br>
+						대표자: 권무경<br>
+						사업자등록번호: 853-41-01293<br>
+						통신판매업신고번호: 2025-서울동대문-1455호<br>
+						주소: 서울특별시 동대문구 장한로14길 81, 101동 3층 303호<br>
+						이메일: kmook1112@gmail.com<br>
+						고객센터: 010-3310-2885 (평일 10:00 ~ 17:00)
+					</p>
+				</section>
+				<ul class="copyright">
+					<li>&copy; 착한소상공인마켓. All rights reserved.</li>
+					<li>Powered by <a href="https://html5up.net" target="_blank">HTML5 UP</a></li>
+				</ul>
+			</div>
+		</footer>
+
+	</div>
+
+	</div>
+
+	<!-- Scripts -->
+	<script src="assets/js/jquery.min.js"></script>
+	<script src="assets/js/jquery.dropotron.min.js"></script>
+	<script src="assets/js/browser.min.js"></script>
+	<script src="assets/js/breakpoints.min.js"></script>
+	<script src="assets/js/util.js"></script>
+	<script src="assets/js/main.js"></script>
+	<script>
+		let slideIndex = 0;
+		let slideTimer;
+
+		function showSlides(n) {
+			const slides = document.getElementsByClassName("slide");
+			const dots = document.getElementsByClassName("dot");
+
+			if (n >= slides.length) { slideIndex = 0; }
+			if (n < 0) { slideIndex = slides.length - 1; }
+
+			// 모든 슬라이드 숨기기
+			for (let i = 0; i < slides.length; i++) {
+				slides[i].style.display = "none";
+			}
+
+			// 모든 도트 비활성화
+			for (let i = 0; i < dots.length; i++) {
+				dots[i].classList.remove("active");
+			}
+
+			// 현재 슬라이드 + 도트 활성화
+			slides[slideIndex].style.display = "block";
+			dots[slideIndex].classList.add("active");
+
+			// 다음 슬라이드를 3초 뒤에 표시
+			clearTimeout(slideTimer);
+			slideTimer = setTimeout(() => {
+				slideIndex++;
+				showSlides(slideIndex);
+			}, 5000); // ← 여기서 슬라이드 시간 3초 (기존보다 1.5배)
+		}
+
+		// 도트 클릭 시
+		function currentSlide(n) {
+			slideIndex = n - 1;
+			showSlides(slideIndex);
+		}
+
+		// 처음 실행
+		window.addEventListener("load", () => {
+			showSlides(slideIndex);
+		});
+	</script>
+	<script>
+		// brand.html 내 앵커 스크롤 처리
+		document.querySelectorAll('a[href^="brand.html#"]').forEach(link => {
+			link.addEventListener('click', function (e) {
+				const targetId = this.getAttribute('href').split('#')[1];
+				if (location.pathname.includes("brand.html")) {
+					e.preventDefault();
+					const targetElement = document.getElementById(targetId);
+					if (targetElement) {
+						targetElement.scrollIntoView({ behavior: 'smooth' });
+					}
+				}
+			});
+		});
+	</script>
+
+</body>
+
 </html>
