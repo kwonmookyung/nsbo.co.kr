@@ -1,42 +1,24 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 
-// Firebase Admin 초기화
-admin.initializeApp();
-const db = admin.firestore();
+// Firebase Admin SDK 초기화
+initializeApp();
+const db = getFirestore();
 
-// Gmail 설정 (보내는 주소와 앱 비밀번호 입력)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "YOUR_EMAIL@gmail.com",         // Gmail 주소
-    pass: "YOUR_APP_PASSWORD",            // 앱 비밀번호 (2단계 인증 사용 시)
+// 서울 리전에 Cloud Function 생성
+exports.logInquiry = onDocumentCreated(
+  {
+    document: "inquiries/{docId}",
+    region: "asia-northeast3", // ✅ 서울 리전 지정
   },
-});
+  (event) => {
+    const data = event.data.data();
 
-// Cloud Function: Firestore 'inquiries' 문서가 추가되면 이메일 발송
-exports.sendInquiryEmail = functions.firestore
-  .document("inquiries/{docId}")
-  .onCreate(async (snap, context) => {
-    const data = snap.data();
-
-    const mailOptions = {
-      from: `"착한소상공인마켓 문의 알림" <YOUR_EMAIL@gmail.com>`,
-      to: "YOUR_RECEIVE_EMAIL@gmail.com", // 실제로 받을 이메일 주소
-      subject: `[문의] ${data.name} 님의 메시지`,
-      text: `
-        이름: ${data.name}
-        이메일: ${data.email}
-        내용: ${data.message}
-        시간: ${data.createdAt.toDate()}
-      `,
-    };
-
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log("문의 이메일 전송 성공");
-    } catch (error) {
-      console.error("이메일 전송 실패:", error);
-    }
-  });
+    console.log("📨 새로운 문의가 등록되었습니다:");
+    console.log(`이름: ${data.name}`);
+    console.log(`이메일: ${data.email}`);
+    console.log(`내용: ${data.message}`);
+    console.log(`시간: ${data.createdAt}`);
+  }
+);
