@@ -28,15 +28,14 @@
 			font-size: 0.8em;
 		}
 
-
 		/* 배너 슬라이드용 */
 		.slider-container {
 			position: relative;
 			width: 100%;
-			min-height: 100vh;
 			margin: auto;
 			overflow: hidden;
 		}
+
 		.slide {
 			display: none;
 			position: relative;
@@ -89,6 +88,16 @@
 			background-color: #ffffff;
 		}
 
+		.dots-container {
+			position: absolute;
+			bottom: 10%;
+			left: 50%;
+			transform: translateX(-50%);
+			text-align: center;
+			width: 100%;
+			z-index: 10;
+		}
+
 		/* 모바일 대응: AppBar 숨기고 여백 조정 */
 		#mobile-logo {
 			display: none;
@@ -109,6 +118,10 @@
 		@media screen and (max-width: 1024px) {
 			#header {
 				display: none !important;
+			}
+
+			.dots-container {
+				bottom: 15px;
 			}
 
 			#banner {
@@ -152,7 +165,7 @@
 
 			<!-- AppBar 로고 -->
 			<div style="font-size: 1.5em; font-weight: bold;">
-				<a href="index.html" id="logo">착한소상공인마켓</a>
+				<a href="index.html" id="logo">착한소상공인지원마켓</a>
 			</div>
 
 			<!-- Nav -->
@@ -177,7 +190,6 @@
 			</nav>
 
 		</div>
-
 		<section id="banner">
 			<div class="slider-container">
 				<div class="slide fade">
@@ -189,12 +201,13 @@
 				<div class="slide fade">
 					<img src="images/banner3.jpg" style="width:100%">
 				</div>
-			</div>
-			<!-- 🔵 도트 컨트롤 -->
-			<div class="dots-container" style="text-align:center; position: relative; top: -40px;">
-				<span class="dot" onclick="currentSlide(1)"></span>
-				<span class="dot" onclick="currentSlide(2)"></span>
-				<span class="dot" onclick="currentSlide(3)"></span>
+
+				<!-- 🔵 도트 컨트롤 (위치 이동됨) -->
+				<div class="dots-container">
+					<span class="dot" onclick="currentSlide(1)"></span>
+					<span class="dot" onclick="currentSlide(2)"></span>
+					<span class="dot" onclick="currentSlide(3)"></span>
+				</div>
 			</div>
 		</section>
 		<!-- Highlights -->
@@ -219,7 +232,7 @@
 						<div class="box highlight">
 							<i class="icon solid major fa-wrench"></i>
 							<h3>매출을 바꾸는 올인원 솔루션</h3>
-							<p>많이 힘드셨죠? 이제 착한소상공인지원센터와 함께라면 달라질겁니다.</p>
+							<p>많이 힘드셨죠? 이제 착한소상공인지원마켓과 함께라면 달라질겁니다.</p>
 						</div>
 					</section>
 				</div>
@@ -296,9 +309,9 @@
 		<footer id="footer">
 			<div class="container">
 				<section>
-					<h3>회사 정보</h3>
+					<h3>착한소상공인지원마켓 정보</h3>
 					<p>
-						상호명: 착한소상공인마켓<br>
+						상호명: 만두<br>
 						대표자: 권무경<br>
 						사업자등록번호: 853-41-01293<br>
 						통신판매업신고번호: 2025-서울동대문-1455호<br>
@@ -308,7 +321,7 @@
 					</p>
 				</section>
 				<ul class="copyright">
-					<li>&copy; 착한소상공인마켓. All rights reserved.</li>
+					<li>&copy; 착한소상공인지원마켓. All rights reserved.</li>
 					<li>Powered by <a href="https://html5up.net" target="_blank">HTML5 UP</a></li>
 				</ul>
 			</div>
@@ -386,4 +399,5 @@
 	</script>
 
 </body>
+
 </html>
