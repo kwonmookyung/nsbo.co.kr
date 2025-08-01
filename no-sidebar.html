@@ -1,5 +1,6 @@
 <!DOCTYPE HTML>
 <html>
+
 <head>
   <title>착소마켓 | 착한소상공인지원마켓</title>
   <meta charset="utf-8" />
@@ -7,7 +8,10 @@
   <link rel="stylesheet" href="assets/css/main.css" />
   <style>
     @media screen and (max-width: 1024px) {
-      #header { display: none !important; }
+      #header {
+        display: none !important;
+      }
+
       #mobile-logo {
         display: block !important;
         position: fixed;
@@ -21,21 +25,36 @@
         border-radius: 4px;
         z-index: 2000;
         text-decoration: none;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    @media screen and (max-width: 1024px) {
+
+      /* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+      img[src*="logo.jpg"] {
+        display: none !important;
+      }
+
+      .wrapper.style1 {
+        margin-top: 10px !important;
+        /* 필요시 더 줄여도 됩니다 */
       }
     }
   </style>
 </head>
+
 <body class="is-preload">
   <div id="page-wrapper">
 
     <!-- Header -->
-    <div id="header" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 2em; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-			<div>
-				<a href="index.html" id="logo">
-					<img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
-				</a>
-			</div>
+    <div id="header"
+      style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 2em; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+      <div>
+        <a href="index.html" id="logo">
+          <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
+        </a>
+      </div>
 
       <nav id="nav">
         <ul>
@@ -43,11 +62,11 @@
           <li>
             <a href="brand.html">브랜드</a>
             <ul>
-        <li><a href="brand.html#company-intro">회사소개</a></li>
-        <li><a href="brand.html#ci">회사CI</a></li>
-        <li><a href="brand.html#culture">기업문화</a></li>
-        <li><a href="brand.html#sustainability">지속가능경영</a></li>
-        <li><a href="brand.html#roadmap">로드맵</a></li>
+              <li><a href="brand.html#company-intro">회사소개</a></li>
+              <li><a href="brand.html#ci">회사CI</a></li>
+              <li><a href="brand.html#culture">기업문화</a></li>
+              <li><a href="brand.html#sustainability">지속가능경영</a></li>
+              <li><a href="brand.html#roadmap">로드맵</a></li>
             </ul>
           </li>
           <li><a href="left-sidebar.html">솔루션</a></li>
@@ -58,8 +77,6 @@
       </nav>
     </div>
 
-    <a href="index.html" id="mobile-logo" style="display: none;">착한소상공인지원마켓</a>
-
     <!-- Main -->
     <section class="wrapper style1" style="margin-top: 100px;">
       <div class="container">
@@ -69,7 +86,8 @@
         </header>
 
         <div style="text-align: center;">
-          <img src="images/comingsoon.jpg" alt="착소마켓 오픈 예정" style="max-width: 100%; height: auto; margin-bottom: 2em;" />
+          <img src="images/comingsoon.jpg" alt="착소마켓 오픈 예정"
+            style="max-width: 100%; height: auto; margin-bottom: 2em;" />
           <h3>현재 마켓 플랫폼을 열심히 준비하고 있어요!</h3>
           <p>착소마켓은 소상공인의 제품을 소비자에게 직접 연결하는 마켓입니다.<br>
             오픈과 함께 더 많은 가치를 전해드릴 수 있도록 준비하고 있으니<br>
@@ -112,4 +130,5 @@
   <script src="assets/js/util.js"></script>
   <script src="assets/js/main.js"></script>
 </body>
+
 </html>

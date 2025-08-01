@@ -23,6 +23,25 @@
 			/* ← 손모양 유지 */
 		}
 
+		.image-wrapper {
+			position: relative;
+		}
+
+		.inquiry-button {
+			position: absolute;
+			bottom: 20px;
+			right: 20px;
+			background-color: #000;
+			color: #fff;
+			padding: 14px 28px;
+			border-radius: 8px;
+			font-weight: bold;
+			font-size: 18px;
+			opacity: 0.9;
+			text-decoration: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		}
+
 		.plain-button:hover {
 			background-color: #000;
 			color: #fff;
@@ -72,6 +91,39 @@
 				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 				/* hover 효과를 없애되 cursor는 유지 */
 			}
+
+			@media screen and (max-width: 1024px) {
+
+				/* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+				img[src*="logo.jpg"] {
+					display: none !important;
+				}
+
+				.wrapper.style1 {
+					margin-top: 10px !important;
+					/* 필요시 더 줄여도 됩니다 */
+				}
+			}
+		}
+
+		@media screen and (max-width: 768px) {
+
+			/* 각 product div에서 버튼을 이미지 아래로 내리기 */
+			.product-container {
+				position: static !important;
+				text-align: center;
+			}
+
+			.product-container img {
+				width: 100%;
+				height: auto;
+			}
+
+			.product-container a {
+				position: static !important;
+				margin-top: 10px;
+				display: inline-block;
+			}
 		}
 	</style>
 </head>
@@ -117,66 +169,25 @@
 				</header>
 
 				<!-- product1 -->
-				<div style="position: relative;">
-					<img src="images/product1.jpg" alt="프로그램1" style="width: 100%; height: auto;" />
-					<a href="two-sidebar.html" style="
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: #000;
-  color: #fff;
-  padding: 14px 28px;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 18px;
-  opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* 선택사항 */
-">
-						문의하기
-					</a>
+				<div class="product-container">
+					<div class="image-wrapper">
+						<img src="images/product1.jpg" alt="프로그램1" style="width: 100%; height: auto;" />
+						<a href="two-sidebar.html" class="inquiry-button">문의하기</a>
+					</div>
 				</div>
-
 				<!-- product2 -->
-				<div style="position: relative; margin-top: 40px;">
-					<img src="images/product2.jpg" alt="프로그램2" style="width: 100%; height: auto;" />
-					<a href="two-sidebar.html" style="
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: #000;
-  color: #fff;
-  padding: 14px 28px;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 18px;
-  opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* 선택사항 */
-">
-						문의하기
-					</a>
+				<div class="product-container">
+					<div class="image-wrapper">
+						<img src="images/product2.jpg" alt="프로그램2" style="width: 100%; height: auto;" />
+						<a href="two-sidebar.html" class="inquiry-button">문의하기</a>
+					</div>
 				</div>
-
 				<!-- product3 -->
-				<div style="position: relative; margin-top: 40px;">
-					<img src="images/product3.jpg" alt="프로그램3" style="width: 100%; height: auto;" />
-					<a href="two-sidebar.html" style="
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: #000;
-  color: #fff;
-  padding: 14px 28px;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 18px;
-  opacity: 0.9;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* 선택사항 */
-">
-						문의하기
-					</a>
+				<div class="product-container">
+					<div class="image-wrapper">
+						<img src="images/product3.jpg" alt="프로그램3" style="width: 100%; height: auto;" />
+						<a href="two-sidebar.html" class="inquiry-button">문의하기</a>
+					</div>
 				</div>
 			</div>
 		</section>

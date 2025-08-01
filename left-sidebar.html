@@ -27,6 +27,19 @@
 				text-decoration: none;
 				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 			}
+
+			@media screen and (max-width: 1024px) {
+
+				/* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+				img[src*="logo.jpg"] {
+					display: none !important;
+				}
+
+				.wrapper.style1 {
+					margin-top: 10px !important;
+					/* 필요시 더 줄여도 됩니다 */
+				}
+			}
 		}
 	</style>
 </head>

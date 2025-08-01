@@ -7,16 +7,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
 
-
     <style>
-        /* ✅ 모바일 전용 AppBar 표시, 기존 AppBar 숨기기 */
-        @media screen and (max-width: 1024px) {
+        @media screen and (max-width: 1080px) {
+
+            /* AppBar */
             #header {
                 display: none !important;
             }
 
             #mobile-logo {
                 display: block !important;
+            }
+
+            /* logo.jpg 숨기기 */
+            img[src*="logo.jpg"] {
+                display: none !important;
+            }
+
+            /* row → column */
+            .row {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            .row>.col-6 {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .row>.col-12-small {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            /* 이미지/텍스트 순서 조정 */
+            .row .image-left {
+                order: 1;
+            }
+
+            .row .text-right {
+                order: 2;
+            }
+
+            .row .text-left {
+                order: 2;
+            }
+
+            .row .image-right {
+                order: 1;
+            }
+
+            .row>.col-6,
+            .row>.col-12-small {
+                padding-left: 2em !important;
+                padding-right: 2em !important;
             }
         }
     </style>
@@ -27,11 +72,11 @@
         <!-- Header (앱바) -->
         <div id="header"
             style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; padding: 0 2em;">
-			<div>
-				<a href="index.html" id="logo">
-					<img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
-				</a>
-			</div>
+            <div>
+                <a href="index.html" id="logo">
+                    <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
+                </a>
+            </div>
 
             <nav id="nav">
                 <ul>
@@ -66,13 +111,13 @@
                     <br>
                     <br>
                     <div class="row">
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small image-left">
                             <!-- 왼쪽 이미지 -->
                             <span class="image fit">
                                 <img src="images/brand_banner1.jpg" alt="회사 소개 이미지" />
                             </span>
                         </div>
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small text-right">
                             <!-- 오른쪽 텍스트 -->
                             <h3>회사 소개</h3>
                             <p>착한소상공인지원마켓은 단순한 마케팅 대행사가 아닙니다.<br>
@@ -94,10 +139,10 @@
 
                 <section id="ci"> <!-- 회사CI -->
                     <br><br><br>
-                    <h3>회사 CI</h3>
                     <div class="row">
                         <!-- 왼쪽 텍스트 -->
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small text-left">
+                            <h3>회사 CI</h3>
                             <p>
                             <p>“우리는 어떻게 하면 소상공인과 함께 경제성장을 이룰 수 있을까.”<br>
                                 이 질문은 착한소상공인지원마켓의 시작이자, 지금도 매일같이 던지는 화두입니다.<br>
@@ -121,7 +166,7 @@
                         </div>
 
                         <!-- 오른쪽 이미지 -->
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small image-right">
                             <span class="image fit">
                                 <img src="images/brand_banner2.jpg" alt="회사CI 이미지" />
                             </span>
@@ -134,13 +179,13 @@
                     <br>
                     <br>
                     <div class="row">
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small image-left">
                             <!-- 왼쪽 이미지 -->
                             <span class="image fit">
                                 <img src="images/brand_banner3.jpg" alt="기업 문화 이미지" />
                             </span>
                         </div>
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small text-right">
                             <h3>기업 문화</h3>
                             <p>기업문화<br>
                                 급변하는 시대, 기업도 함께 진화해야 합니다.<br>
@@ -161,10 +206,10 @@
 
                 <section id="sustainability"> <!-- 지속가능경영 -->
                     <br><br><br>
-                    <h3>지속가능경영</h3>
                     <div class="row">
                         <!-- 왼쪽 텍스트 -->
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small text-left">
+                            <h3>지속가능경영</h3>
                             <p>
                             <p>우리는 소상공인의 시작과 끝을 함께하는 진정한 동반자가 되고자 합니다.<br>
                                 착한소상공인지원마켓은 단순한 마케팅 서비스 제공자를 넘어, 소상공인의 자립과 성장을 함께 설계하는 파트너를 지향합니다.<br>
@@ -185,7 +230,7 @@
                         </div>
 
                         <!-- 오른쪽 이미지 -->
-                        <div class="col-6 col-12-small">
+                        <div class="col-6 col-12-small image-right">
                             <span class="image fit">
                                 <img src="images/brand_banner4.jpg" alt="지속가능경영 이미지" />
                             </span>
@@ -196,13 +241,13 @@
                         <br>
                         <br>
                         <div class="row">
-                            <div class="col-6 col-12-small">
+                            <div class="col-6 col-12-small image-left">
                                 <!-- 왼쪽 이미지 -->
                                 <span class="image fit">
                                     <img src="images/brand_banner5.jpg" alt="로드맵 이미지" />
                                 </span>
                             </div>
-                            <div class="col-6 col-12-small">
+                            <div class="col-6 col-12-small text-right">
                                 <h3>로드맵</h3>
                                 <p>소상공인이 마주한 문제는 단순하지 않습니다.<br>
                                     높은 원가, 플랫폼 수수료, 부족한 인프라까지, 이러한 문제를 해결하기 위해<br>
