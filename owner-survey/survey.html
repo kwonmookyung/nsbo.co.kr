@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사장님 MBTI 설문</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>사장님 MBTI 설문</h1>
+    <p>간단한 질문을 통해 당신의 운영 스타일을 진단합니다.</p>
+
+    <form id="survey-form"></form>
+
+    <div class="button-wrapper">
+      <button id="next-button">다음 단계로</button>
+    </div>
+  </div>
+
+  <script>
+    let stage = 0;
+    const answers = {};
+    const scores = { S: 0, I: 0, W: 0, T: 0, L: 0, R: 0, E: 0, Q: 0 };
+    let questionsData;
+    let currentStageQuestions = [];
+    let stage2Target = "";
+    let stage3Target = "";
+
+    async function loadQuestions() {
+      const response = await fetch("data/question.json");
+      questionsData = await response.json();
+      renderQuestions(questionsData.common);
+    }
+
+    function renderQuestions(questions) {
+      const form = document.getElementById("survey-form");
+      form.innerHTML = "";
+
+      questions.forEach((q, index) => {
+        const fieldset = document.createElement("fieldset");
+        const legend = document.createElement("legend");
+        legend.textContent = `${index + 1}. ${q.question}`;
+        fieldset.appendChild(legend);
+
+        q.options.forEach((opt, optIndex) => {
+          const label = document.createElement("label");
+          label.className = "option-label";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `question-${index}`;
+          input.value = optIndex;
+          input.required = true;
+
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(opt));
+          fieldset.appendChild(label);
+        });
+
+        form.appendChild(fieldset);
+      });
+      currentStageQuestions = questions;
+    }
+
+    function saveAnswersAndScore() {
+      const formData = new FormData(document.getElementById("survey-form"));
+      [...formData.entries()].forEach(([key, value], idx) => {
+        answers[key] = value;
+
+        const q = currentStageQuestions[idx];
+        if (q.type) {
+          const [left, right] = q.type.split("/");
+          if (value == "0") scores[left]++;
+          else scores[right]++;
+        }
+      });
+    }
+
+    function getClosestPair() {
+      let minDiff = Infinity;
+      let selected = "";
+      const pairs = ["SI", "WT", "LR", "EQ"];
+
+      for (const pair of pairs) {
+        const a = pair[0], b = pair[1];
+        const diff = Math.abs(scores[a] - scores[b]);
+        if (diff < minDiff) {
+          minDiff = diff;
+          selected = pair;
+        }
+      }
+      return selected;
+    }
+
+    document.getElementById("next-button").addEventListener("click", (e) => {
+      e.preventDefault();
+      saveAnswersAndScore();
+      stage++;
+
+      switch (stage) {
+        case 1:
+          renderQuestions(questionsData.stage1);
+          break;
+        case 2:
+          stage2Target = getClosestPair();
+          renderQuestions(questionsData.stage2[stage2Target]);
+          break;
+        case 3:
+          stage3Target = getClosestPair();
+          renderQuestions(questionsData.stage3[stage3Target]);
+          break;
+        case 4:
+          localStorage.setItem("surveyAnswers", JSON.stringify(answers));
+          localStorage.setItem("surveyScores", JSON.stringify(scores));
+          window.location.href = "result.html";
+          break;
+      }
+    });
+
+    loadQuestions();
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>설문 결과</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .result-wrapper {
+      max-width: 600px;
+      margin: 3em auto;
+      padding: 2em;
+      background-color: #fdfdfd;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-item {
+      margin-bottom: 1.5em;
+      padding: 1em;
+      background: #fafafa;
+      border-left: 4px solid #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+
+    .back-btn {
+      display: block;
+      margin: 2em auto 0;
+      padding: 0.8em 2em;
+      font-size: 1.1em;
+      background-color: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="result-wrapper">
+    <h2>설문 결과 요약</h2>
+    <div id="result-container"></div>
+    <a href="index.html" class="back-btn">다시 하기</a>
+  </div>
+
+  <script>
+    const resultContainer = document.getElementById('result-container');
+    const answers = JSON.parse(localStorage.getItem('surveyAnswers'));
+
+    if (answers) {
+      Object.keys(answers).forEach((key, idx) => {
+        const answerEl = document.createElement('div');
+        answerEl.className = 'result-item';
+        answerEl.innerHTML = `<strong>Q${idx + 1}:</strong> ${answers[key] || '미응답'}`;
+        resultContainer.appendChild(answerEl);
+      });
+    } else {
+      resultContainer.innerHTML = `<p>설문 응답이 존재하지 않습니다.</p>`;
+    }
+  </script>
+</body>
+
+</html>
