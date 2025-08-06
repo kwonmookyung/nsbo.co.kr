@@ -325,7 +325,6 @@
             localStorage.setItem("loginSource", "login"); // 경로 저장
 
             Kakao.Auth.login({
-                scope: 'profile_nickname',
                 success: function (authObj) {
                     Kakao.API.request({
                         url: '/v2/user/me',
