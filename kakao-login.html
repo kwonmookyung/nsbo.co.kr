@@ -325,7 +325,7 @@
             localStorage.setItem("loginSource", "login"); // 경로 저장 (선택)
 
             Kakao.Auth.login({
-                scope: 'profile_nickname,gender,age_range,phone_number',
+                scope: 'profile_nickname',
                 success: function (authObj) {
                     // ✅ 사용자 정보 가져오기
                     Kakao.API.request({
