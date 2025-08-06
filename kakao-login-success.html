@@ -285,7 +285,7 @@
     <section id="main" class="wrapper style1" style="padding-top: 6em;">
         <div class="container">
             <header class="major">
-                <h2>로그인이 완료되었습니다</h2>
+                <h2>회원가입 및 로그인이 완료되었습니다</h2>
             </header>
             <ul class="actions special">
                 <li><a href="index.html" class="button primary">홈페이지로 가기</a></li>
@@ -338,7 +338,7 @@
                 profile_image: response.properties?.profile_image || null,
                 timestamp: serverTimestamp(),
                 loginSource: localStorage.getItem("loginSource") || "unknown",
-                marketingConsent: true
+                marketingConsent: response.kakao_account?.marketing?.enabled || false
             };
 
             await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
