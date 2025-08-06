@@ -186,6 +186,7 @@
             .box.highlight {
                 text-align: left !important;
             }
+            
 
             /* 아이콘 위치도 왼쪽으로 */
             .box.highlight .icon {
@@ -306,6 +307,7 @@
             localStorage.setItem("loginSource", "login"); // 로그인 경로 저장
 
             Kakao.Auth.login({
+                scope: 'profile_nickname,gender,age_range,phone_number', // <- 이런 식으로 동의항목 요청
                 success: function (authObj) {
                     window.location.href = "kakao-login-success.html";
                 },
