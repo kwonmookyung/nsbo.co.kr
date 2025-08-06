@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오 로그인 완료</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        .message-box {
+            background: white;
+            padding: 2em;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        p {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .btn {
+            margin-top: 2em;
+            padding: 0.8em 1.5em;
+            background: #000;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="message-box">
+        <h1>로그인이 완료되었습니다</h1>
+        <p>이제 설문 결과를 카카오톡 채널을 통해 받아보실 수 있습니다.</p>
+        <a class="btn" href="index.html">홈페이지로 가기</a>
+    </div>
+</body><!-- 카카오 SDK 로드 및 초기화 (반드시 module script보다 먼저!) -->
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<script>
+    Kakao.init('cc58d703cacde86ff1976fd723a04854'); // 너의 JS 키로 교체
+</script>
+
+<!-- Firebase + 사용자 정보 저장 처리 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+        authDomain: "nbso-b7f41.firebaseapp.com",
+        projectId: "nbso-b7f41",
+        storageBucket: "nbso-b7f41.firebasestorage.app",
+        messagingSenderId: "94203359555",
+        appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+        measurementId: "G-YCWF8ENKC4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    Kakao.API.request({
+        url: '/v2/user/me',
+        success: async function (response) {
+            const userInfo = {
+                uid: response.id,
+                email: response.kakao_account?.email || null,
+                phone: response.kakao_account?.phone_number || null,
+                gender: response.kakao_account?.gender || null,
+                age_range: response.kakao_account?.age_range || null,
+                nickname: response.properties?.nickname || null,
+                profile_image: response.properties?.profile_image || null,
+                timestamp: serverTimestamp(),
+                loginSource: localStorage.getItem("loginSource") || "unknown",
+                marketingConsent: true
+            };
+
+            // 1. 사용자 정보 저장
+            await setDoc(doc(db, "kakao_users", userInfo.uid.toString()), userInfo);
+            console.log("✅ 사용자 정보 저장 완료");
+
+            // 2. 설문 결과 연결 (result.html → 로그인한 경우)
+            if (userInfo.loginSource === "result") {
+                const surveyUUID = localStorage.getItem("surveyUUID");
+                if (surveyUUID) {
+                    try {
+                        const surveyRef = doc(db, "survey_results", surveyUUID);
+                        await updateDoc(surveyRef, {
+                            kakaoUid: userInfo.uid,
+                            kakaoEmail: userInfo.email,
+                            kakaoNickname: userInfo.nickname,
+                            connectedAt: serverTimestamp()
+                        });
+                        console.log("✅ 설문 결과와 카카오 사용자 연결 완료");
+                    } catch (e) {
+                        console.error("❌ 설문 결과 연결 실패:", e);
+                    }
+                } else {
+                    console.warn("❗ surveyUUID 없음: 설문 결과 연결 생략");
+                }
+
+                // TODO: 알림톡 API 연동 위치
+            }
+
+            // 3. localStorage 정리
+            localStorage.removeItem("loginSource");
+            localStorage.removeItem("surveyUUID");
+        },
+        fail: function (error) {
+            console.error("❌ 카카오 사용자 정보 요청 실패:", error);
+            alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+    });
+</script>
+
+
+</html>

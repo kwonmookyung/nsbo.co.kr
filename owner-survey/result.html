@@ -21,12 +21,23 @@
       border-left: 4px solid #333;
     }
 
+    .checkbox-group a {
+      color: black;
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+
+    .checkbox-group a:hover {
+      color: blue;
+    }
+
     h2 {
       text-align: center;
       margin-bottom: 1em;
     }
 
-    .back-btn {
+    .back-btn,
+    .kakao-btn {
       display: block;
       margin: 2em auto 0;
       padding: 0.8em 2em;
@@ -38,30 +49,165 @@
       text-align: center;
       text-decoration: none;
     }
+
+    .checkbox-group {
+      margin-top: 2em;
+      font-size: 0.95em;
+    }
+
+    .checkbox-group label {
+      display: block;
+      margin-bottom: 0.5em;
+    }
+
+    small {
+      display: block;
+      margin-top: 1em;
+      font-size: 0.85em;
+      color: #555;
+    }
   </style>
 </head>
+<script>
+  function openPopup(url) {
+    window.open(url, 'popup', 'width=600,height=700,scrollbars=yes,resizable=yes');
+  }
+</script>
 
 <body>
   <div class="result-wrapper">
-    <h2>설문 결과 요약</h2>
-    <div id="result-container"></div>
+    <h2>사장님의 MOTI 설문이 완료되었습니다!</h2>
+    <p>사장님의 유형 및 맞춤 결과는 카카오톡 채널을 통해 전송됩니다.</p>
+
+    <div class="checkbox-group">
+      <label>
+        <input type="checkbox" id="agreePrivacy" required>
+        <a href="#" onclick="openPopup('privacy-policy.html'); return false;">개인정보 처리방침 동의 (필수)</a>
+      </label>
+      <small>
+        ※ [개인정보 수집 및 이용 안내]<br>
+        - 수집 항목: 이름, 전화번호, 이메일, 성별, 연령대, 설문 응답<br>
+        - 이용 목적: 설문 결과 분석 및 결과 전송, 마케팅 활용(선택 시)<br>
+        - 보유 기간: 수집일로부터 2년 또는 동의 철회 시까지
+      </small>
+
+      <label>
+        <input type="checkbox" id="agreeTerms" required>
+        <a href="#" onclick="openPopup('terms.html'); return false;">서비스 이용약관 동의 (필수)</a>
+      </label>
+
+      <label>
+        <input type="checkbox" id="agreeChannel" required>
+        <a href="#" onclick="openPopup('channel-consent.html'); return false;">카카오톡 채널 친구 추가 동의 (필수)</a>
+      </label>
+
+      <label>
+        <input type="checkbox" id="agreeMarketing">
+        <a href="#" onclick="openPopup('marketing-consent.html'); return false;">광고성 정보 수신 동의 (선택)</a>
+      </label>
+      <small>
+        ※ 수신 동의 시, 다음과 같은 혜택이 제공됩니다:<br>
+        – 우리 매장의 매출을 2배로 만드는 <strong>주간 맞춤 전략 솔루션</strong><br>
+        – 경쟁사보다 앞서는 <strong>최신 마케팅 트렌드</strong> 제공<br>
+        👉 <strong>지금 동의하고 ‘성공 사장님’의 실전 노하우를 함께 받아보세요!</strong>
+      </small>
+    </div>
+
+    <button class="kakao-btn" onclick="submitResult()">카카오로 결과 받기</button>
     <a href="index.html" class="back-btn">다시 하기</a>
   </div>
 
-  <script>
-    const resultContainer = document.getElementById('result-container');
-    const answers = JSON.parse(localStorage.getItem('surveyAnswers'));
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    if (answers) {
-      Object.keys(answers).forEach((key, idx) => {
-        const answerEl = document.createElement('div');
-        answerEl.className = 'result-item';
-        answerEl.innerHTML = `<strong>Q${idx + 1}:</strong> ${answers[key] || '미응답'}`;
-        resultContainer.appendChild(answerEl);
-      });
-    } else {
-      resultContainer.innerHTML = `<p>설문 응답이 존재하지 않습니다.</p>`;
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+      authDomain: "nbso-b7f41.firebaseapp.com",
+      projectId: "nbso-b7f41",
+      storageBucket: "nbso-b7f41.firebasestorage.app",
+      messagingSenderId: "94203359555",
+      appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+      measurementId: "G-YCWF8ENKC4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    async function saveResultToFirestore() {
+      if (localStorage.getItem("resultSaved") === "true") return null;
+      try {
+        const answers = JSON.parse(localStorage.getItem("surveyAnswers"));
+        const scores = JSON.parse(localStorage.getItem("surveyScores"));
+        const res = await fetch("data/question.json");
+        const questionsData = await res.json();
+        const allResponses = [];
+        const stages = [
+          { key: "common", questions: questionsData.common },
+          { key: "stage1", questions: questionsData.stage1 },
+          { key: "stage2", questions: Object.values(questionsData.stage2).flat() },
+          { key: "stage3", questions: Object.values(questionsData.stage3).flat() }
+        ];
+
+        let answerIndex = 0;
+        for (const stage of stages) {
+          for (const q of stage.questions) {
+            const answerValue = answers[`question-${answerIndex}`];
+            if (answerValue === undefined) break;
+            const entry = {
+              stage: stage.key,
+              question: q.question,
+              answer: q.options[answerValue]
+            };
+            if (q.type) {
+              const [left, right] = q.type.split("/");
+              entry.type = q.type;
+              entry.score = answerValue == 0 ? left : right;
+            }
+            allResponses.push(entry);
+            answerIndex++;
+          }
+        }
+
+        const docRef = await addDoc(collection(db, "survey_results"), {
+          timestamp: serverTimestamp(),
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          responses: allResponses,
+          finalScores: scores,
+          consents: {
+            privacy: document.getElementById("agreePrivacy").checked,
+            terms: document.getElementById("agreeTerms").checked,
+            kakao_channel: document.getElementById("agreeChannel").checked,
+            marketing: document.getElementById("agreeMarketing").checked
+          }
+        });
+
+        localStorage.setItem("resultSaved", "true");
+        localStorage.setItem("surveyUUID", docRef.id);
+        console.log("✅ 설문 결과 저장됨. UUID:", docRef.id);
+        return docRef.id;  // ✅ 추가: UUID 리턴
+      } catch (error) {
+        console.error("❌ Firestore 저장 중 오류:", error);
+        return null;
+      }
     }
+
+    window.submitResult = async function () {
+      if (
+        !document.getElementById("agreePrivacy").checked ||
+        !document.getElementById("agreeTerms").checked ||
+        !document.getElementById("agreeChannel").checked
+      ) {
+        alert("필수 항목에 모두 동의해 주세요.");
+        return;
+      }
+
+      const uuid = await saveResultToFirestore();  // ⬅️ UUID 받기
+      if (!uuid) return;
+
+      localStorage.setItem("loginSource", "result");
+      localStorage.setItem("surveyUUID", uuid);
+      window.location.href = "kakao-login.html";
+    };
   </script>
 </body>
 

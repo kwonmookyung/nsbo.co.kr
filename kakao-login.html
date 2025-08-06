@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 / 회원가입</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        input[type="submit"].fit,
+        input[type="reset"].fit,
+        input[type="button"].fit,
+        button.fit,
+        .button.fit {
+            width: 100%;
+        }
+
+        input[type="submit"].small,
+        input[type="reset"].small,
+        input[type="button"].small,
+        button.small,
+        .button.small {
+            font-size: 0.8em;
+        }
+
+        /* 배너 슬라이드용 */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            position: relative;
+            /* 부모가 높이 감지하게 함 */
+        }
+
+        .slide img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 배너와 헤더 겹침 방지 + 아래 콘텐츠 여유 */
+        #banner {
+            margin-top: 80px;
+            margin-bottom: 4em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fade {
+            animation-name: fade;
+            animation-duration: 1s;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0.4;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            margin: 0 5px;
+            background-color: #000000;
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: #ffffff;
+        }
+
+        .dots-container {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* 모바일 대응: AppBar 숨기고 여백 조정 */
+        #mobile-logo {
+            display: none;
+            position: fixed;
+            top: 1em;
+            left: 1em;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #000 !important;
+            text-decoration: none;
+            z-index: 2000;
+            background: white;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        @media screen and (max-width: 3840px) and (min-width: 1024px) {
+            .wrapper.style1 {
+                padding-top: 6em !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+            #header {
+                display: none !important;
+            }
+
+            .dots-container {
+                bottom: 15px;
+            }
+
+            #banner {
+                margin-bottom: 6em;
+                /* 여유 있게 */
+            }
+
+            #mobile-logo {
+                display: block !important;
+            }
+
+            #logo,
+            #logo img {
+                display: none !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+            img[src*="logo.jpg"] {
+                display: none !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+            #banner {
+                margin-bottom: 1em !important;
+            }
+
+            .wrapper.style1 {
+                padding-top: 1em !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* .box.highlight 전체를 왼쪽 정렬로 붙이기 */
+            .box.highlight {
+                text-align: left !important;
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+
+            /* 전체 컨테이너 여백 줄이기 */
+            .wrapper.style1>.container {
+                padding-left: 3em !important;
+                padding-right: 1em !important;
+            }
+
+            /* 내부 col 섹션의 여백도 최소화 */
+            .row.gtr-200>section {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* 하이라이트 박스 안쪽 텍스트 왼쪽 정렬 */
+            .box.highlight {
+                text-align: left !important;
+            }
+
+            /* 아이콘 위치도 왼쪽으로 */
+            .box.highlight .icon {
+                margin: 0 0 1em 0;
+                display: inline-block;
+                float: left;
+            }
+
+            .box.highlight h3,
+            .box.highlight p {
+                margin-left: 6em;
+                /* 아이콘 옆으로 밀기 (적절히 조정 가능) */
+            }
+        }
+
+        #login-wrapper {
+            margin-top: 120px;
+            text-align: center;
+            padding: 3em 1em;
+        }
+
+        #login-wrapper h2 {
+            font-size: 2em;
+            margin-bottom: 1em;
+        }
+
+        .kakao-button {
+            background-color: #FEE500;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 1em 2em;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .kakao-button:hover {
+            background-color: #f2d900;
+        }
+
+        @media screen and (max-width: 768px) {
+            #login-wrapper {
+                padding: 2em 1em;
+            }
+        }
+    </style>
+</head>
+
+<body class="is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header (홈페이지와 동일한 고정 헤더 구성) -->
+        <div id="header" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2em;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    ">
+            <div>
+                <a href="index.html" id="logo">
+                    <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
+                </a>
+            </div>
+            <nav id="nav">
+                <ul>
+                    <li class="current"><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
+                    <li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a></li>
+                    <li></li><a href="index.html">홈</a></li>
+                    <li> <a href="brand.html">브랜드</a>
+                        <ul>
+                            <li><a href="brand.html#company-intro">회사소개</a></li>
+                            <li><a href="brand.html#ci">회사CI</a></li>
+                            <li><a href="brand.html#culture">기업문화</a></li>
+                            <li><a href="brand.html#sustainability">지속가능경영</a></li>
+                            <li><a href="brand.html#roadmap">로드맵</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="left-sidebar.html">솔루션</a></li>
+                    <li><a href="right-sidebar.html">프로그램</a></li>
+                    <li><a href="two-sidebar.html">고객문의</a></li>
+                    <li><a href="no-sidebar.html">착소마켓</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- 로그인 영역 -->
+        <section id="login-wrapper">
+            <h2>로그인 또는 회원가입</h2>
+            <p>카카오톡 계정으로 간편하게 로그인하세요.</p>
+            <a href="#" onclick="loginWithKakao(); return false;">
+                <button class="kakao-button">카카오로 시작하기</button>
+            </a>
+        </section>
+    </div>
+
+    <!-- 카카오 로그인 스크립트 -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+    <script>
+        Kakao.init('cc58d703cacde86ff1976fd723a04854'); // 실제 앱 키로 교체
+
+        function loginWithKakao() {
+            localStorage.setItem("loginSource", "login"); // 로그인 경로 저장
+
+            Kakao.Auth.login({
+                success: function (authObj) {
+                    window.location.href = "kakao-login-success.html";
+                },
+                fail: function (err) {
+                    alert("카카오 로그인 실패: " + JSON.stringify(err));
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

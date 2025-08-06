@@ -49,7 +49,6 @@
 		.slide {
 			display: none;
 			position: relative;
-			/* 부모가 높이 감지하게 함 */
 		}
 
 		.slide img {
@@ -62,8 +61,8 @@
 
 		/* 배너와 헤더 겹침 방지 + 아래 콘텐츠 여유 */
 		#banner {
-			margin-top: 80px;
-			margin-bottom: 4em;
+			margin-top: 80px !important;
+			margin-bottom: 4em !important;
 			position: relative;
 			z-index: 1;
 		}
@@ -131,18 +130,20 @@
 			}
 		}
 
-		@media screen and (max-width: 1024px) {
+		@media screen and (max-width: 840px) {
 			#header {
 				display: none !important;
 			}
+		}
+
+		@media screen and (max-width: 1024px) {
 
 			.dots-container {
 				bottom: 15px;
 			}
 
 			#banner {
-				margin-bottom: 6em;
-				/* 여유 있게 */
+				margin-bottom: 1em !important;
 			}
 
 			#mobile-logo {
@@ -150,59 +151,31 @@
 			}
 
 			#logo,
-			#logo img {
-				display: none !important;
-			}
-		}
-
-		@media screen and (max-width: 1024px) {
-
-			/* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+			#logo img,
 			img[src*="logo.jpg"] {
 				display: none !important;
-			}
-		}
-
-		@media screen and (max-width: 1024px) {
-			#banner {
-				margin-bottom: 1em !important;
 			}
 
 			.wrapper.style1 {
 				padding-top: 1em !important;
 			}
-		}
 
-		@media screen and (max-width: 1024px) {
+			.wrapper.style1>.container {
+				padding-left: 3em !important;
+				padding-right: 1em !important;
+			}
 
-			/* .box.highlight 전체를 왼쪽 정렬로 붙이기 */
+			.row.gtr-200>section {
+				padding-left: 0 !important;
+				padding-right: 0 !important;
+			}
+
 			.box.highlight {
 				text-align: left !important;
 				margin-left: 0 !important;
 				padding-left: 0 !important;
 			}
 
-			/* 전체 컨테이너 여백 줄이기 */
-			.wrapper.style1>.container {
-				padding-left: 3em !important;
-				padding-right: 1em !important;
-			}
-
-			/* 내부 col 섹션의 여백도 최소화 */
-			.row.gtr-200>section {
-				padding-left: 0 !important;
-				padding-right: 0 !important;
-			}
-		}
-
-		@media screen and (max-width: 1024px) {
-
-			/* 하이라이트 박스 안쪽 텍스트 왼쪽 정렬 */
-			.box.highlight {
-				text-align: left !important;
-			}
-
-			/* 아이콘 위치도 왼쪽으로 */
 			.box.highlight .icon {
 				margin: 0 0 1em 0;
 				display: inline-block;
@@ -212,7 +185,6 @@
 			.box.highlight h3,
 			.box.highlight p {
 				margin-left: 6em;
-				/* 아이콘 옆으로 밀기 (적절히 조정 가능) */
 			}
 		}
 	</style>
@@ -257,6 +229,8 @@
 			<!-- Nav -->
 			<nav id="nav">
 				<ul>
+					<li><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
+					<li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a></li>
 					<li class="current"><a href="index.html">홈</a></li>
 					<li>
 						<a href="brand.html">브랜드</a>
