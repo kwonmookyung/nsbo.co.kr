@@ -341,7 +341,7 @@
                 marketingConsent: true
             };
 
-            await setDoc(doc(db, "kakao_users", userInfo.uid.toString()), userInfo);
+            await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
             console.log("✅ 사용자 정보 저장 완료");
 
             if (userInfo.loginSource === "result") {
