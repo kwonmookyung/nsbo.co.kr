@@ -186,7 +186,7 @@
             .box.highlight {
                 text-align: left !important;
             }
-            
+
 
             /* 아이콘 위치도 왼쪽으로 */
             .box.highlight .icon {
@@ -292,31 +292,80 @@
         </section>
     </div>
 
-    <!-- 카카오 로그인 스크립트 -->
+    <!-- 필수 JS들 -->
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/jquery.dropotron.min.js"></script>
     <script src="assets/js/browser.min.js"></script>
     <script src="assets/js/breakpoints.min.js"></script>
     <script src="assets/js/util.js"></script>
     <script src="assets/js/main.js"></script>
+
+    <!-- ✅ 카카오 & Firebase SDK -->
     <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
     <script>
-        Kakao.init('cc58d703cacde86ff1976fd723a04854'); // 실제 앱 키로 교체
+        // ✅ Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+            authDomain: "nbso-b7f41.firebaseapp.com",
+            projectId: "nbso-b7f41",
+            storageBucket: "nbso-b7f41.firebasestorage.app",
+            messagingSenderId: "94203359555",
+            appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+            measurementId: "G-YCWF8ENKC4"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ✅ 카카오 초기화
+        Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 너의 실제 앱 키 사용
 
         function loginWithKakao() {
-            localStorage.setItem("loginSource", "login"); // 로그인 경로 저장
+            localStorage.setItem("loginSource", "login"); // 경로 저장 (선택)
 
             Kakao.Auth.login({
-                scope: 'profile_nickname,gender,age_range,phone_number', // <- 이런 식으로 동의항목 요청
+                scope: 'profile_nickname,gender,age_range,phone_number',
                 success: function (authObj) {
-                    window.location.href = "kakao-login-success.html";
+                    // ✅ 사용자 정보 가져오기
+                    Kakao.API.request({
+                        url: '/v2/user/me',
+                        success: function (res) {
+                            const kakaoId = res.id;
+                            const account = res.kakao_account;
+
+                            const userData = {
+                                nickname: account.profile?.nickname || "",
+                                gender: account.gender || "",
+                                age_range: account.age_range || "",
+                                phone_number: account.phone_number || "",
+                                timestamp: firebase.firestore.Timestamp.now()
+                            };
+
+                            // ✅ Firestore 저장
+                            db.collection("users").doc(kakaoId.toString()).set(userData)
+                                .then(() => {
+                                    console.log("✅ Firestore 저장 완료");
+                                    window.location.href = "kakao-login-success.html";
+                                })
+                                .catch((error) => {
+                                    console.error("❌ Firestore 저장 실패:", error);
+                                    alert("회원가입 저장 실패");
+                                });
+                        },
+                        fail: function (error) {
+                            console.error("❌ 사용자 정보 요청 실패:", error);
+                            alert("사용자 정보 요청 실패");
+                        }
+                    });
                 },
                 fail: function (err) {
-                    alert("카카오 로그인 실패: " + JSON.stringify(err));
+                    console.error("❌ 로그인 실패:", err);
+                    alert("카카오 로그인 실패");
                 }
             });
         }
     </script>
-</body>
 
 </html>
