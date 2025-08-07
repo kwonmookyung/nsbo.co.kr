@@ -9,20 +9,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 9999;">
+	z-index: 9999;
+    padding: 1em; /* ✅ 팝업창 외부 여백 추가 */
+    box-sizing: border-box; /* ✅ 패딩이 너비에 포함되도록 설정 */
+    overflow-y: auto; /* ✅ 화면이 작아질 경우 스크롤 가능하도록 설정 */">
 	
 	<div style="
 		background: #fff;
-		padding: 2em;
+		padding: 1em; /* ✅ 모바일에서도 보기 좋게 패딩을 줄임 */
 		border-radius: 10px;
 		text-align: center;
 		max-width: 400px;
-		box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        width: 100%; /* ✅ 작은 화면에서 꽉 차도록 설정 */
+		box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-sizing: border-box;">
 		
-		<h3 style="margin-bottom: 1em;">👀 나의 운영 유형은?</h3>
-		<p style="font-size: 14px; margin-bottom: 1.5em;">
-			설문에 참여하고 내 매장에 맞는 맞춤 전략을 알아보세요!
-		</p>
+		<!-- ✅ 요청에 따라 '나의 운영 유형은?'과 '설문에 참여하고 내 매장에 맞는 맞춤 전략을 알아보세요!' 문구를 삭제했습니다. -->
+		
 		<a href="owner-survey/index.html">
 			<img src="images/survey-banner.jpg" alt="설문 배너" style="width: 100%; height: auto; border-radius: 6px; cursor: pointer;">
 		</a>
