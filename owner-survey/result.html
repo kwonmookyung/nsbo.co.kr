@@ -67,6 +67,8 @@
       color: #555;
     }
   </style>
+  <!-- ✅ 카카오 SDK 추가 -->
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 </head>
 <script>
   function openPopup(url) {
@@ -79,15 +81,13 @@
     <h2>사장님의 MOTI 설문이 완료되었습니다!</h2>
     <p>사장님의 유형 및 맞춤 결과는 카카오톡 채널을 통해 전송됩니다.</p>
     
-    <!-- 모든 동의 항목 UI가 제거되었습니다. -->
-    
     <button class="kakao-btn" onclick="submitResult()">카카오로 결과 받기</button>
     <a href="index.html" class="back-btn">다시 하기</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
@@ -101,6 +101,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // ✅ 카카오 SDK 초기화
+    Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 여기에 실제 앱 키를 사용하세요.
 
     async function saveResultToFirestore() {
       if (localStorage.getItem("resultSaved") === "true") return null;
@@ -155,7 +158,6 @@
           responses: allResponses,
           finalScores: scores,
           finalType: finalType,
-          // consents 필드가 삭제되었습니다.
         });
 
         localStorage.setItem("resultSaved", "true");
@@ -189,14 +191,79 @@
         return motiType;
     }
 
+    // ✅ `kakao-login.html`의 로직을 통합하여 수정된 함수
     window.submitResult = async function () {
-      // 동의 항목 체크 로직이 삭제되었습니다.
-      const uuid = await saveResultToFirestore();
-      if (!uuid) return;
+      // 1. 설문 결과를 먼저 Firestore에 저장합니다.
+      const surveyUUID = await saveResultToFirestore();
+      if (!surveyUUID) {
+        alert("설문 결과 저장에 실패했습니다. 다시 시도해주세요.");
+        return;
+      }
 
-      localStorage.setItem("loginSource", "result");
-      localStorage.setItem("surveyUUID", uuid);
-      window.location.href = "kakao-login.html";
+      // 2. 설문 결과 저장이 완료되면 카카오 로그인 프로세스를 시작합니다.
+      Kakao.Auth.login({
+        success: function (authObj) {
+          Kakao.API.request({
+            url: '/v2/user/me',
+            success: async function (res) {
+              const kakaoId = res.id.toString();
+              const account = res.kakao_account;
+              
+              const userData = {
+                nickname: account.profile?.nickname || "",
+                gender: account.gender || "",
+                age_range: account.age_range || "",
+                phone_number: account.phone_number || "",
+                lastLoginAt: serverTimestamp()
+              };
+
+              // 3. Firestore의 `users` 컬렉션에 사용자 정보를 저장/업데이트합니다.
+              //    설문 UUID를 함께 저장하여 사용자와 설문 결과를 연결합니다.
+              try {
+                const userRef = doc(db, "users", kakaoId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                  // 기존 사용자일 경우: 기존 데이터에 설문 UUID 추가
+                  const existingData = userDoc.data();
+                  const surveyResults = existingData.surveyResults || [];
+                  surveyResults.push(surveyUUID);
+
+                  await setDoc(userRef, { 
+                    ...userData,
+                    surveyResults: [...new Set(surveyResults)] // 중복 제거 후 저장
+                  }, { merge: true }); // 기존 데이터는 유지하고 업데이트
+
+                  console.log("✅ 기존 사용자 - Firestore 정보 업데이트 및 설문 UUID 추가");
+                } else {
+                  // 신규 사용자일 경우: 새 문서 생성 및 설문 UUID 포함
+                  await setDoc(userRef, { 
+                    ...userData,
+                    surveyResults: [surveyUUID]
+                  });
+
+                  console.log("✅ 신규 사용자 - Firestore 저장 완료");
+                }
+                
+                // 4. 모든 저장이 완료되면 성공 페이지로 이동
+                window.location.href = "kakao-login-success.html";
+
+              } catch (error) {
+                console.error("❌ Firestore 저장 실패:", error);
+                alert("회원가입/로그인 저장 실패");
+              }
+            },
+            fail: function (error) {
+              console.error("❌ 사용자 정보 요청 실패:", error);
+              alert("사용자 정보 요청 실패");
+            }
+          });
+        },
+        fail: function (err) {
+          console.error("❌ 로그인 실패:", err);
+          alert("카카오 로그인 실패");
+        }
+      });
     };
   </script>
 </body>
