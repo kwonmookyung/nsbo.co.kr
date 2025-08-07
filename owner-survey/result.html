@@ -5,98 +5,168 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>설문 결과</title>
-  <!-- Tailwind CSS CDN -->
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     body {
       font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    .result-wrapper {
+      max-width: 600px;
+      margin: 3em auto;
+      padding: 2em;
+      background-color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5em;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #4b5563;
+    }
+
+    .kakao-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2em;
+      padding: 0.8em 2em;
+      font-size: 1.1em;
+      background-color: #fee500;
+      color: #3c1e1e;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .kakao-btn:hover {
+      background-color: #f7e100;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 1em;
+      padding: 0.8em 2em;
+      font-size: 1.1em;
+      background-color: #e5e7eb;
+      color: #4b5563;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #d1d5db;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-  <div class="result-wrapper bg-white p-8 sm:p-12 rounded-xl shadow-lg w-full max-w-2xl">
-    <div id="result-content" class="flex flex-col items-center">
-      <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-4 text-center">
-        사장님의 MOTI 설문이 완료되었습니다!
-      </h2>
-      <p class="text-gray-600 mb-8 text-center">
-        자세한 유형 분석 및 맞춤 결과는 카카오톡 채널을 통해 전송됩니다.
-      </p>
+<body>
+  <div class="result-wrapper">
+    <h2>사장님의 MOTI 설문이 완료되었습니다!</h2>
+    <p>사장님의 유형 및 맞춤 결과는 카카오톡 채널을 통해 전송됩니다.</p>
 
-      <!-- 버튼 섹션 -->
-      <div class="mt-8 flex flex-col sm:flex-row sm:space-x-4 w-full">
-        <button id="kakao-btn" onclick="submitResult()"
-          class="kakao-btn w-full flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg shadow-md transition-colors duration-300 mb-4 sm:mb-0">
-          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오 아이콘"
-            class="h-5 mr-2" />
-          카카오로 결과 받기
-        </button>
-        <a href="survey.html"
-          class="back-btn w-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-md transition-colors duration-300">
-          다시 하기
-        </a>
-      </div>
+    <button class="kakao-btn" onclick="submitResult()">
+      <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오 아이콘"
+        class="h-5 mr-2" />
+      카카오로 결과 받기
+    </button>
+    <a href="survey.html" class="back-btn">다시 하기</a>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+      <p id="modal-message" class="text-gray-800"></p>
+      <button id="modal-close-btn"
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">확인</button>
     </div>
   </div>
 
-  <!-- 모달 UI -->
-  <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full text-center">
-      <p id="modal-message" class="text-gray-800 text-lg mb-4"></p>
-      <button id="modal-close-btn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-        확인
-      </button>
-    </div>
-  </div>
-
-  <!-- 카카오 SDK -->
-  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-
-  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 전역 변수 설정
-    // ❌ 환경 변수가 제공되지 않을 때를 대비해 Firebase 설정을 수동으로 추가합니다.
-    const firebaseConfig = typeof __firebase_config !== 'undefined' && Object.keys(JSON.parse(__firebase_config)).length > 0
-      ? JSON.parse(__firebase_config)
-      : {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-      };
-    const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     let app, db, auth;
-    let userId = null;
+    let userId = "";
     let isFirebaseReady = false;
 
-    // 모달 관련 함수
     function showModal(message) {
       document.getElementById("modal-message").innerText = message;
-      document.getElementById("modal-overlay").classList.remove("hidden");
+      document.getElementById("modal-overlay").classList.add("show");
     }
 
     document.getElementById("modal-close-btn").addEventListener("click", () => {
-      document.getElementById("modal-overlay").classList.add("hidden");
+      document.getElementById("modal-overlay").classList.remove("show");
     });
 
-    // Firebase 초기화 및 인증
     async function setupFirebase() {
       try {
-        if (Object.keys(firebaseConfig).length > 0) {
-          app = initializeApp(firebaseConfig);
+        // ✅ Canvas 환경의 전역 변수가 있으면 사용하고, 없으면 하드코딩된 값을 사용
+        const providedConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+          apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+          authDomain: "nbso-b7f41.firebaseapp.com",
+          projectId: "nbso-b7f41",
+          storageBucket: "nbso-b7f41.firebasestorage.app",
+          messagingSenderId: "94203359555",
+          appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+          measurementId: "G-YCWF8ENKC4"
+        };
+
+        if (Object.keys(providedConfig).length > 0) {
+          app = initializeApp(providedConfig);
           db = getFirestore(app);
           auth = getAuth(app);
 
+          const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
           } else {
@@ -106,44 +176,31 @@
           userId = auth.currentUser?.uid || crypto.randomUUID();
           console.log("✅ Firebase 초기화 및 로그인 완료. User ID:", userId);
           isFirebaseReady = true;
-          return userId;
         } else {
           console.error("❌ Firebase 설정이 유효하지 않습니다.");
-          showModal("Firebase 설정이 올바르지 않습니다.");
-          return null;
         }
       } catch (error) {
         console.error("❌ Firebase 초기화 또는 로그인 중 오류:", error);
-        showModal("Firebase 연결 중 오류가 발생했습니다. 다시 시도해 주세요.");
-        return null;
       }
     }
 
-    // 설문 결과 Firestore 저장 함수
-    async function saveResultToFirestore(currentUserId) {
+    async function saveResultToFirestore() {
       if (!isFirebaseReady) {
+        console.error("❌ Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.");
         showModal("서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
         return null;
       }
 
-      // 이미 저장된 경우 UUID 반환
-      const storedUUID = localStorage.getItem("surveyUUID");
-      if (localStorage.getItem("resultSaved") === "true" && storedUUID) {
-        console.log("ℹ️ 설문 결과가 이미 저장되었습니다. UUID:", storedUUID);
-        return storedUUID;
+      if (localStorage.getItem("resultSaved") === "true") {
+        console.log("ℹ️ 설문 결과가 이미 저장되었습니다. UUID:", localStorage.getItem("surveyUUID"));
+        return localStorage.getItem("surveyUUID");
       }
 
       const answers = JSON.parse(localStorage.getItem("surveyAnswers"));
       const scores = JSON.parse(localStorage.getItem("surveyScores"));
-
-      // 답변 데이터가 없는 경우
-      if (!answers || !scores) {
-        showModal("설문 결과 데이터가 없습니다. 다시 설문에 참여해 주세요.");
-        return null;
-      }
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
       try {
-        // 설문 질문 데이터를 다시 불러와 답변 내용을 상세하게 저장하는 로직
         const res = await fetch("data/question.json");
         const questionsData = await res.json();
 
@@ -180,38 +237,14 @@
           }
         }
 
-        // 최종 유형 계산
-        function calculateFinalType(scores) {
-          let motiType = "";
-          const pairs = [
-            { axis1: "S", axis2: "I" },
-            { axis1: "W", axis2: "T" },
-            { axis1: "L", axis2: "R" },
-            { axis1: "E", axis2: "Q" }
-          ];
-          pairs.forEach(pair => {
-            if (scores[pair.axis1] > scores[pair.axis2]) {
-              motiType += pair.axis1;
-            } else if (scores[pair.axis2] > scores[pair.axis1]) {
-              motiType += pair.axis2;
-            } else {
-              motiType += pair.axis1;
-            }
-          });
-          return motiType;
-        }
-
         const finalType = calculateFinalType(scores);
 
-        // 설문 결과 저장 경로: /artifacts/{appId}/public/data/survey_results
         const docRef = await addDoc(collection(db, `/artifacts/${appId}/public/data/survey_results`), {
           timestamp: serverTimestamp(),
-          responses: allResponses, // 상세 답변 내용 저장
+          responses: allResponses,
           finalScores: scores,
-          finalType: finalType, // 최종 유형 저장
-          userId: currentUserId, // Firebase 인증 UID 저장
-          loginSource: "result",
-          connectedAt: null,
+          finalType: finalType,
+          userId: userId,
         });
 
         localStorage.setItem("resultSaved", "true");
@@ -225,44 +258,95 @@
       }
     }
 
-    // 카카오 로그인 및 결과 연결 함수
-    async function connectKakaoAndSaveResult() {
-      const surveyUUID = await saveResultToFirestore(userId);
-      if (!surveyUUID) return;
+    function calculateFinalType(scores) {
+      let motiType = "";
+      const pairs = [
+        { axis1: "S", axis2: "I" },
+        { axis1: "W", axis2: "T" },
+        { axis1: "L", axis2: "R" },
+        { axis1: "E", axis2: "Q" }
+      ];
 
-      // 💡 로그인 성공 시 리다이렉트 URL에 UUID를 추가하여 kakao-login-success.html에서 사용할 수 있도록 합니다.
-      Kakao.Auth.login({
-        success: function (authObj) {
-          console.log("✅ 카카오 로그인 성공:", JSON.stringify(authObj));
-          window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
-        },
-        fail: function (err) {
-          console.error("❌ 카카오 로그인 실패:", JSON.stringify(err));
-          showModal("카카오 로그인에 실패했습니다.");
+      pairs.forEach(pair => {
+        if (scores[pair.axis1] > scores[pair.axis2]) {
+          motiType += pair.axis1;
+        } else if (scores[pair.axis2] > scores[pair.axis1]) {
+          motiType += pair.axis2;
+        } else {
+          motiType += pair.axis1;
         }
       });
+      return motiType;
     }
 
-    window.submitResult = connectKakaoAndSaveResult;
+    window.submitResult = async function () {
+      if (!isFirebaseReady) {
+        showModal("서버 연결 중입니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
 
-    // 페이지 로드 시 실행
+      const surveyUUID = await saveResultToFirestore();
+      if (!surveyUUID) return;
+
+      // 카카오 로그인 로직 (기존 코드 유지)
+      Kakao.Auth.login({
+        success: function (authObj) {
+          Kakao.API.request({
+            url: '/v2/user/me',
+            success: async function (res) {
+              const kakaoId = res.id.toString();
+              const account = res.kakao_account;
+              const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+              const userData = {
+                name: account?.name ?? null,
+                gender: account?.gender ?? null,
+                age_range: account?.age_range ?? null,
+                birthday: account?.birthday ?? null,
+                phone_number: account?.phone_number ?? null,
+                timestamp: firebase.firestore.Timestamp.now()
+              };
+
+              try {
+                const userRef = doc(db, `/artifacts/${appId}/public/data/users`, kakaoId);
+                const userDoc = await getDoc(userRef);
+                const surveyResults = userDoc.exists() ? userDoc.data().surveyResults || [] : [];
+                surveyResults.push(surveyUUID);
+
+                await setDoc(userRef, {
+                  ...userData,
+                  surveyResults: [...new Set(surveyResults)]
+                }, { merge: true });
+
+                console.log("✅ Firestore 사용자 정보 업데이트 완료.");
+                window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
+              } catch (error) {
+                console.error("❌ Firestore 저장 실패:", error);
+                showModal("회원가입/로그인 정보 저장 실패");
+              }
+            },
+            fail: function (error) {
+              console.error("❌ 사용자 정보 요청 실패:", error);
+              showModal("사용자 정보 요청 실패");
+            }
+          });
+        },
+        fail: function (err) {
+          console.error("❌ 로그인 실패:", err);
+          showModal("카카오 로그인 실패");
+        }
+      });
+    };
+
     window.onload = async function () {
-      // Firebase 초기화 및 인증 후 userId를 받습니다.
-      const authenticatedUserId = await setupFirebase();
-      if (authenticatedUserId) {
-        // userId를 사용하여 설문 결과를 Firestore에 저장합니다.
-        await saveResultToFirestore(authenticatedUserId);
-      }
+      await setupFirebase();
+      Kakao.init("cc58d703cacde86ff1976fd723a04854");
+      console.log("✅ 카카오 SDK 초기화 완료");
 
-      // 카카오 SDK 초기화
-      if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-        // 💡 YOUR_KAKAO_API_KEY 대신 실제 API 키를 입력하세요.
-        Kakao.init("cc58d703cacde86ff1976fd723a04854");
-        console.log("✅ 카카오 SDK 초기화 완료");
+      // 페이지 로드 시 결과 자동 저장 (단, 이미 저장되지 않았을 경우)
+      if (localStorage.getItem("resultSaved") !== "true") {
+        saveResultToFirestore();
       }
-
-      // 카카오 로그인 버튼에 이벤트 리스너 추가
-      document.getElementById('kakao-btn').addEventListener('click', connectKakaoAndSaveResult);
     };
   </script>
 </body>
