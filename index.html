@@ -197,10 +197,48 @@
 			const popupHtml = await response.text();
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = popupHtml;
-			document.body.appendChild(tempDiv.firstElementChild);
+			const surveyPopup = tempDiv.firstElementChild; // 팝업 요소 참조
+
+			document.body.appendChild(surveyPopup);
+
+			// 팝업이 열릴 때 body에 패딩 추가
+			// 앱바의 높이를 고려하여 조정합니다. 현재 앱바의 높이는 CSS에서 80px로 보입니다.
+			const headerHeight = document.getElementById('header').offsetHeight;
+			document.body.style.paddingTop = `${headerHeight}px`;
+			document.body.style.boxSizing = 'border-box'; // 패딩이 레이아웃에 포함되도록
+
+			// 팝업 닫기 버튼에 이벤트 리스너 추가
+			const closeButton = surveyPopup.querySelector('button');
+			if (closeButton) {
+				closeButton.addEventListener('click', () => {
+					surveyPopup.remove();
+					document.body.style.paddingTop = '0'; // 팝업 닫힐 때 패딩 제거
+					document.body.style.boxSizing = ''; // box-sizing 원래대로 되돌림
+				});
+			}
+
+			// 추가: 모바일 환경에서만 패딩 적용
+			// (팝업창 자체의 CSS가 flex를 이용해 중앙 정렬되므로,
+			// 앱바가 없을 때 전체적으로 상단으로 붙는 현상 방지)
+			const mediaQuery = window.matchMedia('(max-width: 1024px)'); // 모바일 기준 미디어 쿼리
+
+			function handleMediaQueryChange(e) {
+				if (e.matches) { // 모바일 환경일 때
+					document.body.style.paddingTop = `${headerHeight}px`;
+				} else { // 데스크탑 환경일 때
+					document.body.style.paddingTop = '0';
+				}
+			}
+
+			// 초기 로드 시 적용
+			handleMediaQueryChange(mediaQuery);
+			// 미디어 쿼리 변경 감지
+			mediaQuery.addEventListener('change', handleMediaQueryChange);
+
 		}
 	});
 </script>
+
 <body class="is-preload">
 	<div id="page-wrapper">
 		<!-- Header -->
