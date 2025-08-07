@@ -12,16 +12,18 @@
   <div class="container">
     <h1>MOTI란?</h1>
     <p><strong>MBTI</strong>처럼 4가지 축<br>
-    (운영/마케팅/결정방식/응대성향)을 기준으로 나눈 유형검사입니다.</p>
+      (운영/마케팅/결정방식/응대성향)을 기준으로 나눈 유형검사입니다.</p>
     <p>Management Operation<br> Type Insight의 약어 이며 실제 통계와 데이터를 기반으로 구축되었습니다.</p>
-    <p>매일 가게를 운영하며 수많은 결정을 내리고 계시죠?<br> 혹시<strong> '내 경영 방식이 최선일까?', '다른 사장님들은 어떻게 할까?'</strong><br>라는 고민을 해보신 적은 없으신가요?</p>
+    <p>매일 가게를 운영하며 수많은 결정을 내리고 계시죠?<br> 혹시<strong> '내 경영 방식이 최선일까?', '다른 사장님들은 어떻게 할까?'</strong><br>라는 고민을 해보신 적은 없으신가요?
+    </p>
     <p>MOTI를 통해 사장님은 다음을 얻으실 수 있습니다<br>
-    <strong>나의 강점 발견</strong>: 미처 몰랐던 사장님의 경영 잠재력과 강점을 명확히 알게 됩니다.<br>
-    <strong>맞춤형 통찰</strong>: 내 가게와 나의 성향에 딱 맞는 현실적인 경영 전략과 개선 방안을 제시받습니다.<br>
-    <strong>미래 방향성</strong>: 나아가야 할 방향을 설정하고, 더 효율적이고 성공적인 운영을 위한 나침반을 얻습니다.<br>
+      <strong>나의 강점 발견</strong>: 미처 몰랐던 사장님의 경영 잠재력과 강점을 명확히 알게 됩니다.<br>
+      <strong>맞춤형 통찰</strong>: 내 가게와 나의 성향에 딱 맞는 현실적인 경영 전략과 개선 방안을 제시받습니다.<br>
+      <strong>미래 방향성</strong>: 나아가야 할 방향을 설정하고, 더 효율적이고 성공적인 운영을 위한 나침반을 얻습니다.<br>
     <p><strong>5분</strong>만 투자하시면 사장님의 실질적인 매출이 180도 달라집니다.<br>
-    수많은 사장님들의 실제 고민을 바탕으로 개발된 MOTI, <strong>지금 바로 경험해보세요!</strong><br>
-    <small>설문 결과는 오직 사장님의 성장을 돕는 데에만 활용됩니다.</small></p>
+      수많은 사장님들의 실제 고민을 바탕으로 개발된 MOTI, <strong>지금 바로 경험해보세요!</strong><br>
+      <small>설문 결과는 오직 사장님의 성장을 돕는 데에만 활용됩니다.</small>
+    </p>
 
     <form id="survey-form"></form>
 
@@ -48,12 +50,26 @@
     let stage2Target = "";
     let stage3Target = "";
 
-    // loadQuestions 함수에서 renderQuestions(questionsData.common); 호출 제거
+    // ✅ loadQuestions 함수 수정: 모든 질문에 globalIndex 부여
     async function loadQuestions() {
       const response = await fetch("data/question.json");
       questionsData = await response.json();
+
+      let currentGlobalIndex = 0;
+      questionsData.common.forEach(q => q.globalIndex = currentGlobalIndex++);
+      questionsData.stage1.forEach(q => q.globalIndex = currentGlobalIndex++);
+
+      // stage2와 stage3는 중첩된 객체이므로 특별히 처리하여 globalIndex 부여
+      for (const key in questionsData.stage2) {
+        questionsData.stage2[key].forEach(q => q.globalIndex = currentGlobalIndex++);
+      }
+      for (const key in questionsData.stage3) {
+        questionsData.stage3[key].forEach(q => q.globalIndex = currentGlobalIndex++);
+      }
       // renderQuestions(questionsData.common); // <-- 이 줄은 제거합니다.
     }
+
+    // ✅ renderQuestions 함수 수정: input name에 globalIndex 사용
     function renderQuestions(questions) {
       const form = document.getElementById("survey-form");
       form.innerHTML = "";
@@ -61,7 +77,8 @@
       questions.forEach((q, index) => {
         const fieldset = document.createElement("fieldset");
         const legend = document.createElement("legend");
-        legend.textContent = `${index + 1}. ${q.question}`;
+        // ✅ 질문만 굵게 표시 (이전 제안 반영)
+        legend.innerHTML = `${index + 1}. <strong>${q.question}</strong>`;
         fieldset.appendChild(legend);
 
         q.options.forEach((opt, optIndex) => {
@@ -70,7 +87,8 @@
 
           const input = document.createElement("input");
           input.type = "radio";
-          input.name = `question-${index}`;
+          // ✅ input name에 globalIndex 사용
+          input.name = `question-${q.globalIndex}`;
           input.value = optIndex;
           input.required = true;
 
@@ -84,18 +102,26 @@
       currentStageQuestions = questions;
     }
 
+    // ✅ saveAnswersAndScore 함수 수정: globalIndex를 사용하여 답변 저장
     function saveAnswersAndScore() {
-      const formData = new FormData(document.getElementById("survey-form"));
-      [...formData.entries()].forEach(([key, value], idx) => {
-        answers[key] = value;
+      const form = document.getElementById("survey-form");
+      const formData = new FormData(form);
 
-        const q = currentStageQuestions[idx];
-        if (q.type) {
-          const [left, right] = q.type.split("/");
-          if (value == "0") scores[left]++;
-          else scores[right]++;
+      currentStageQuestions.forEach(q => {
+        const answerKey = `question-${q.globalIndex}`; // ✅ 고유한 globalIndex 키 사용
+        const value = formData.get(answerKey);
+
+        if (value !== null) { // 답변이 존재하는 경우에만 저장
+          answers[answerKey] = value;
+
+          if (q.type) {
+            const [left, right] = q.type.split("/");
+            if (value == "0") scores[left]++;
+            else scores[right]++;
+          }
         }
       });
+      // console.log("Current answers:", answers); // 디버깅용
     }
 
     function getClosestPair() {
