@@ -333,10 +333,10 @@
                             const account = res.kakao_account;
 
                             const userData = {
-                                nickname: account.profile?.nickname || "",
-                                gender: account.gender || "",
-                                age_range: account.age_range || "",
-                                phone_number: account.phone_number || "",
+                                nickname: account.profile?.nickname ?? null,
+                                gender: account.hasOwnProperty("gender") ? account.gender : null,
+                                age_range: account.hasOwnProperty("age_range") ? account.age_range : null,
+                                phone_number: account.hasOwnProperty("phone_number") ? account.phone_number : null,
                                 timestamp: firebase.firestore.Timestamp.now()
                             };
 
