@@ -96,16 +96,19 @@
           userId = auth.currentUser?.uid || crypto.randomUUID();
           console.log("✅ Firebase 초기화 및 로그인 완료. User ID:", userId);
           isFirebaseReady = true;
+          return userId;
         } else {
           console.error("❌ Firebase 설정이 유효하지 않습니다.");
+          return null;
         }
       } catch (error) {
         console.error("❌ Firebase 초기화 또는 로그인 중 오류:", error);
+        return null;
       }
     }
 
     // 설문 결과 Firestore 저장 함수
-    async function saveResultToFirestore() {
+    async function saveResultToFirestore(currentUserId) {
       if (!isFirebaseReady) {
         showModal("서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
         return null;
@@ -194,7 +197,7 @@
           responses: allResponses, // 상세 답변 내용 저장
           finalScores: scores,
           finalType: finalType, // 최종 유형 저장
-          userId: userId, // Firebase 인증 UID 저장
+          userId: currentUserId, // Firebase 인증 UID 저장
           loginSource: "result",
           connectedAt: null,
         });
@@ -212,7 +215,7 @@
 
     // 카카오 로그인 및 결과 연결 함수
     async function connectKakaoAndSaveResult() {
-      const surveyUUID = await saveResultToFirestore();
+      const surveyUUID = await saveResultToFirestore(userId);
       if (!surveyUUID) return;
 
       Kakao.Auth.login({
@@ -246,10 +249,16 @@
 
     // 페이지 로드 시 실행
     window.onload = async function () {
-      await setupFirebase();
+      // Firebase 초기화 및 인증 후 userId를 받습니다.
+      const authenticatedUserId = await setupFirebase();
+      if (authenticatedUserId) {
+        // userId를 사용하여 설문 결과를 Firestore에 저장합니다.
+        await saveResultToFirestore(authenticatedUserId);
+      }
+
+      // 카카오 SDK 초기화
       Kakao.init("cc58d703cacde86ff1976fd723a04854");
       console.log("✅ 카카오 SDK 초기화 완료");
-      saveResultToFirestore();
     };
   </script>
 </body>
