@@ -110,52 +110,52 @@
       try {
         const answers = JSON.parse(localStorage.getItem("surveyAnswers"));
         const scores = JSON.parse(localStorage.getItem("surveyScores"));
+        
         const res = await fetch("data/question.json");
         const questionsData = await res.json();
+        
         const allResponses = [];
 
-        const allQuestionsFlat = [];
-        questionsData.common.forEach(q => allQuestionsFlat[q.globalIndex] = { ...q, stage: "common" });
-        questionsData.stage1.forEach(q => allQuestionsFlat[q.globalIndex] = { ...q, stage: "stage1" });
+        // ✅ 질문 데이터를 globalIndex로 빠르게 찾기 위한 맵 생성
+        const questionMap = {};
+        questionsData.common.forEach(q => questionMap[q.globalIndex] = { ...q, stage: "common" });
+        questionsData.stage1.forEach(q => questionMap[q.globalIndex] = { ...q, stage: "stage1" });
         for (const key in questionsData.stage2) {
-          questionsData.stage2[key].forEach(q => allQuestionsFlat[q.globalIndex] = { ...q, stage: "stage2" });
+            questionsData.stage2[key].forEach(q => questionMap[q.globalIndex] = { ...q, stage: "stage2" });
         }
         for (const key in questionsData.stage3) {
-          questionsData.stage3[key].forEach(q => allQuestionsFlat[q.globalIndex] = { ...q, stage: "stage3" });
+            questionsData.stage3[key].forEach(q => questionMap[q.globalIndex] = { ...q, stage: "stage3" });
         }
 
-        for (let i = 0; i < allQuestionsFlat.length; i++) {
-          const q = allQuestionsFlat[i];
-          if (!q) {
-            continue;
-          }
+        // ✅ localStorage의 answers를 직접 순회하며 응답 배열 생성
+        for (const key in answers) {
+          if (key.startsWith('question-')) {
+            const globalIndex = key.split('-')[1];
+            const q = questionMap[globalIndex];
+            const answerValue = answers[key];
 
-          const answerValue = answers[`question-${q.globalIndex}`];
-
-          if (answerValue === undefined) {
-             console.warn(`답변을 찾을 수 없습니다: question-${q.globalIndex} - ${q.question}`);
-             continue;
+            if (q && answerValue !== undefined) {
+              const entry = {
+                stage: q.stage,
+                question: q.question,
+                answer: q.options[answerValue]
+              };
+              if (q.type) {
+                const [left, right] = q.type.split("/");
+                entry.type = q.type;
+                entry.score = answerValue == "0" ? left : right;
+              }
+              allResponses.push(entry);
+            }
           }
-
-          const entry = {
-            stage: q.stage,
-            question: q.question,
-            answer: q.options[answerValue]
-          };
-          if (q.type) {
-            const [left, right] = q.type.split("/");
-            entry.type = q.type;
-            entry.score = answerValue == "0" ? left : right;
-          }
-          allResponses.push(entry);
         }
-
+        
         const finalType = calculateFinalType(scores);
 
         const docRef = await addDoc(collection(db, "survey_results"), {
           timestamp: serverTimestamp(),
           expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-          responses: allResponses,
+          responses: allResponses, // ✅ 이제 responses 배열이 제대로 채워집니다.
           finalScores: scores,
           finalType: finalType,
         });
@@ -191,16 +191,13 @@
         return motiType;
     }
 
-    // ✅ `kakao-login.html`의 로직을 통합하여 수정된 함수
     window.submitResult = async function () {
-      // 1. 설문 결과를 먼저 Firestore에 저장합니다.
       const surveyUUID = await saveResultToFirestore();
       if (!surveyUUID) {
         alert("설문 결과 저장에 실패했습니다. 다시 시도해주세요.");
         return;
       }
 
-      // 2. 설문 결과 저장이 완료되면 카카오 로그인 프로세스를 시작합니다.
       Kakao.Auth.login({
         success: function (authObj) {
           Kakao.API.request({
@@ -217,26 +214,22 @@
                 lastLoginAt: serverTimestamp()
               };
 
-              // 3. Firestore의 `users` 컬렉션에 사용자 정보를 저장/업데이트합니다.
-              //    설문 UUID를 함께 저장하여 사용자와 설문 결과를 연결합니다.
               try {
                 const userRef = doc(db, "users", kakaoId);
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
-                  // 기존 사용자일 경우: 기존 데이터에 설문 UUID 추가
                   const existingData = userDoc.data();
                   const surveyResults = existingData.surveyResults || [];
                   surveyResults.push(surveyUUID);
 
                   await setDoc(userRef, { 
                     ...userData,
-                    surveyResults: [...new Set(surveyResults)] // 중복 제거 후 저장
-                  }, { merge: true }); // 기존 데이터는 유지하고 업데이트
+                    surveyResults: [...new Set(surveyResults)]
+                  }, { merge: true });
 
                   console.log("✅ 기존 사용자 - Firestore 정보 업데이트 및 설문 UUID 추가");
                 } else {
-                  // 신규 사용자일 경우: 새 문서 생성 및 설문 UUID 포함
                   await setDoc(userRef, { 
                     ...userData,
                     surveyResults: [surveyUUID]
@@ -245,7 +238,6 @@
                   console.log("✅ 신규 사용자 - Firestore 저장 완료");
                 }
                 
-                // 4. 모든 저장이 완료되면 성공 페이지로 이동
                 window.location.href = "kakao-login-success.html";
 
               } catch (error) {
