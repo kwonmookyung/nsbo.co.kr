@@ -321,6 +321,9 @@
         // ✅ 카카오 초기화
         Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 너의 실제 앱 키 사용
 
+        // ✅ __app_id 변수 가져오기 (캔버스 환경에서 제공)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
         function loginWithKakao() {
             localStorage.setItem("loginSource", "login"); // 경로 저장
 
@@ -331,18 +334,19 @@
                         success: function (res) {
                             const kakaoId = res.id;
                             const account = res.kakao_account;
-
+                            
+                            // ❗ 오류 해결: account 객체 안에 name 필드가 없을 경우를 대비해 안전하게 접근
                             const userData = {
-                                name: account.name || null,
-                                gender: account.gender || null,
-                                age_range: account.age_range || null,
-                                birthday: account.birthday || null,
-                                phone_number: account.phone_number || null,
+                                name: account && account.name ? account.name : null,
+                                gender: account && account.gender ? account.gender : null,
+                                age_range: account && account.age_range ? account.age_range : null,
+                                birthday: account && account.birthday ? account.birthday : null,
+                                phone_number: account && account.phone_number ? account.phone_number : null,
                                 timestamp: firebase.firestore.Timestamp.now()
                             };
 
-                            // ✅ 먼저 문서 존재 여부 확인
-                            const docRef = db.collection("users").doc(kakaoId.toString());
+                            // ✅ Firestore 경로 수정: 보안 규칙에 맞게 변경
+                            const docRef = db.collection("artifacts").doc(appId).collection("public").doc("data").collection("users").doc(kakaoId.toString());
 
                             docRef.get().then((docSnap) => {
                                 if (docSnap.exists) {
@@ -357,23 +361,23 @@
                                         })
                                         .catch((error) => {
                                             console.error("❌ Firestore 저장 실패:", error);
-                                            alert("회원가입 저장 실패");
+                                            // alert("회원가입 저장 실패");
                                         });
                                 }
                             }).catch((err) => {
                                 console.error("❌ Firestore 문서 확인 실패:", err);
-                                alert("서버 오류: 다시 시도해주세요.");
+                                // alert("서버 오류: 다시 시도해주세요.");
                             });
                         },
                         fail: function (error) {
                             console.error("❌ 사용자 정보 요청 실패:", error);
-                            alert("사용자 정보 요청 실패");
+                            // alert("사용자 정보 요청 실패");
                         }
                     });
                 },
                 fail: function (err) {
                     console.error("❌ 로그인 실패:", err);
-                    alert("카카오 로그인 실패");
+                    // alert("카카오 로그인 실패");
                 }
             });
         }
