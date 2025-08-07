@@ -106,7 +106,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <!-- ✅ 카카오 SDK 추가 -->
   <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 </head>
 
@@ -123,7 +122,6 @@
     <a href="survey.html" class="back-btn">다시 하기</a>
   </div>
 
-  <!-- ✅ 알림 모달 -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal">
       <p id="modal-message" class="text-gray-800"></p>
@@ -133,38 +131,42 @@
   </div>
 
   <script type="module">
-    // ✅ Firebase SDK를 import합니다.
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // ✅ 전역 변수 초기화
     let app, db, auth;
     let userId = "";
+    let isFirebaseReady = false;
 
-    // ✅ 팝업 모달을 표시하는 함수
     function showModal(message) {
       document.getElementById("modal-message").innerText = message;
       document.getElementById("modal-overlay").classList.add("show");
     }
 
-    // ✅ 팝업 모달을 숨기는 이벤트 리스너
     document.getElementById("modal-close-btn").addEventListener("click", () => {
       document.getElementById("modal-overlay").classList.remove("show");
     });
 
-    // ✅ Firebase 초기화 및 익명 로그인
     async function setupFirebase() {
       try {
-        // 전역 변수(__firebase_config, __initial_auth_token) 사용
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // ✅ Canvas 환경의 전역 변수가 있으면 사용하고, 없으면 하드코딩된 값을 사용
+        const providedConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+          apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+          authDomain: "nbso-b7f41.firebaseapp.com",
+          projectId: "nbso-b7f41",
+          storageBucket: "nbso-b7f41.firebasestorage.app",
+          messagingSenderId: "94203359555",
+          appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+          measurementId: "G-YCWF8ENKC4"
+        };
 
-        if (Object.keys(firebaseConfig).length > 0) {
-          app = initializeApp(firebaseConfig);
+        if (Object.keys(providedConfig).length > 0) {
+          app = initializeApp(providedConfig);
           db = getFirestore(app);
           auth = getAuth(app);
 
+          const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
           } else {
@@ -173,6 +175,7 @@
 
           userId = auth.currentUser?.uid || crypto.randomUUID();
           console.log("✅ Firebase 초기화 및 로그인 완료. User ID:", userId);
+          isFirebaseReady = true;
         } else {
           console.error("❌ Firebase 설정이 유효하지 않습니다.");
         }
@@ -181,14 +184,13 @@
       }
     }
 
-    // ✅ Firebase에 설문 결과를 저장하는 함수
     async function saveResultToFirestore() {
-      if (!db) {
-        showModal("서버 오류: 다시 시도해 주세요.");
+      if (!isFirebaseReady) {
+        console.error("❌ Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.");
+        showModal("서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
         return null;
       }
 
-      // localStorage에 이미 결과가 저장되었는지 확인
       if (localStorage.getItem("resultSaved") === "true") {
         console.log("ℹ️ 설문 결과가 이미 저장되었습니다. UUID:", localStorage.getItem("surveyUUID"));
         return localStorage.getItem("surveyUUID");
@@ -203,7 +205,6 @@
         const questionsData = await res.json();
 
         const allResponses = [];
-
         const questionMap = {};
         questionsData.common.forEach(q => questionMap[q.globalIndex] = { ...q, stage: "common" });
         questionsData.stage1.forEach(q => questionMap[q.globalIndex] = { ...q, stage: "stage1" });
@@ -243,7 +244,7 @@
           responses: allResponses,
           finalScores: scores,
           finalType: finalType,
-          userId: userId, // 익명 User ID 저장
+          userId: userId,
         });
 
         localStorage.setItem("resultSaved", "true");
@@ -279,14 +280,15 @@
     }
 
     window.submitResult = async function () {
-      if (!auth || !db) {
-        showModal("서버 연결에 실패했습니다. 다시 시도해 주세요.");
+      if (!isFirebaseReady) {
+        showModal("서버 연결 중입니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
       const surveyUUID = await saveResultToFirestore();
       if (!surveyUUID) return;
 
+      // 카카오 로그인 로직 (기존 코드 유지)
       Kakao.Auth.login({
         success: function (authObj) {
           Kakao.API.request({
@@ -307,7 +309,6 @@
               try {
                 const userRef = doc(db, `/artifacts/${appId}/public/data/users`, kakaoId);
                 const userDoc = await getDoc(userRef);
-
                 const surveyResults = userDoc.exists() ? userDoc.data().surveyResults || [] : [];
                 surveyResults.push(surveyUUID);
 
@@ -318,7 +319,6 @@
 
                 console.log("✅ Firestore 사용자 정보 업데이트 완료.");
                 window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
-
               } catch (error) {
                 console.error("❌ Firestore 저장 실패:", error);
                 showModal("회원가입/로그인 정보 저장 실패");
@@ -339,10 +339,10 @@
 
     window.onload = async function () {
       await setupFirebase();
-      Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 여기에 실제 앱 키를 사용하세요.
+      Kakao.init("cc58d703cacde86ff1976fd723a04854");
       console.log("✅ 카카오 SDK 초기화 완료");
 
-      // 로컬 스토리지에 결과가 저장되어 있지 않으면 결과를 저장합니다.
+      // 페이지 로드 시 결과 자동 저장 (단, 이미 저장되지 않았을 경우)
       if (localStorage.getItem("resultSaved") !== "true") {
         saveResultToFirestore();
       }
