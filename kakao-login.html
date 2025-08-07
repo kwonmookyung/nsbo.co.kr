@@ -301,72 +301,30 @@
     <script src="assets/js/main.js"></script>
 
     <!-- ✅ 카카오 & Firebase SDK -->
-    <!-- 기존 Firebase SDK v8 대신 모듈 방식 v11.6.1로 변경 -->
     <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 전역 변수 설정
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        let app, db, auth;
-        let isFirebaseReady = false;
-
-        // 모달 UI 함수 (기존 alert 대신 사용)
-        function showModal(message) {
-            // 이 파일에는 모달 UI가 없으므로 console.error로 대체합니다.
-            // 실제 웹사이트에서는 UI를 만들어 사용자에게 보여주는 것이 좋습니다.
-            console.error(message);
-        }
-
-        // Firebase 초기화 및 인증
-        async function setupFirebase() {
-            try {
-                if (Object.keys(firebaseConfig).length > 0) {
-                    app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-
-                    // 💡 onAuthStateChanged를 사용하여 인증 상태 변경을 감지합니다.
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            console.log("✅ Firebase 인증 완료. User ID:", user.uid);
-                            isFirebaseReady = true;
-                        } else {
-                            // 💡 인증이 되지 않은 경우 익명 로그인 시도
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        }
-                    });
-                } else {
-                    console.error("❌ Firebase 설정이 유효하지 않습니다.");
-                }
-            } catch (error) {
-                console.error("❌ Firebase 초기화 또는 로그인 중 오류:", error);
-            }
-        }
-
-        // 페이지 로드 시 Firebase 초기화 및 인증 시작
-        window.onload = function () {
-            setupFirebase();
-            Kakao.init("cc58d703cacde86ff1976fd723a04854");
-            console.log("✅ 카카오 SDK 초기화 완료");
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        // ✅ Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+            authDomain: "nbso-b7f41.firebaseapp.com",
+            projectId: "nbso-b7f41",
+            storageBucket: "nbso-b7f41.firebasestorage.app",
+            messagingSenderId: "94203359555",
+            appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+            measurementId: "G-YCWF8ENKC4"
         };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ✅ 카카오 초기화
+        Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 너의 실제 앱 키 사용
+
+        // ✅ __app_id 변수 가져오기 (캔버스 환경에서 제공)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         function loginWithKakao() {
-            // 💡 Firebase가 준비되었는지 확인
-            if (!isFirebaseReady) {
-                showModal("서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
-                return;
-            }
-
             localStorage.setItem("loginSource", "login"); // 경로 저장
 
             Kakao.Auth.login({
@@ -376,54 +334,53 @@
                         success: function (res) {
                             const kakaoId = res.id;
                             const account = res.kakao_account;
-
+                            
                             // ❗ 오류 해결: account 객체 안에 name 필드가 없을 경우를 대비해 안전하게 접근
                             const userData = {
-                                name: account?.name || null,
-                                gender: account?.gender || null,
-                                age_range: account?.age_range || null,
-                                birthday: account?.birthday || null,
-                                phone_number: account?.phone_number || null,
-                                timestamp: serverTimestamp() // Firebase v11용 serverTimestamp로 변경
+                                name: account && account.name ? account.name : null,
+                                gender: account && account.gender ? account.gender : null,
+                                age_range: account && account.age_range ? account.age_range : null,
+                                birthday: account && account.birthday ? account.birthday : null,
+                                phone_number: account && account.phone_number ? account.phone_number : null,
+                                timestamp: firebase.firestore.Timestamp.now()
                             };
 
                             // ✅ Firestore 경로 수정: 보안 규칙에 맞게 변경
-                            const usersCollectionRef = doc(db, `/artifacts/${appId}/public/data/users`, kakaoId.toString());
+                            const docRef = db.collection("artifacts").doc(appId).collection("public").doc("data").collection("users").doc(kakaoId.toString());
 
-                            getDoc(usersCollectionRef).then((docSnap) => {
+                            docRef.get().then((docSnap) => {
                                 if (docSnap.exists) {
                                     console.log("✅ 기존 사용자 - Firestore 저장 생략");
                                     window.location.href = "kakao-login-success.html";
                                 } else {
                                     // ❌ 없으면 저장 후 이동
-                                    setDoc(usersCollectionRef, userData)
+                                    docRef.set(userData)
                                         .then(() => {
                                             console.log("✅ Firestore 저장 완료");
                                             window.location.href = "kakao-login-success.html";
                                         })
                                         .catch((error) => {
                                             console.error("❌ Firestore 저장 실패:", error);
-                                            showModal("회원가입 저장 실패");
+                                            // alert("회원가입 저장 실패");
                                         });
                                 }
                             }).catch((err) => {
                                 console.error("❌ Firestore 문서 확인 실패:", err);
-                                showModal("서버 오류: 다시 시도해주세요.");
+                                // alert("서버 오류: 다시 시도해주세요.");
                             });
                         },
                         fail: function (error) {
                             console.error("❌ 사용자 정보 요청 실패:", error);
-                            showModal("사용자 정보 요청 실패");
+                            // alert("사용자 정보 요청 실패");
                         }
                     });
                 },
                 fail: function (err) {
                     console.error("❌ 로그인 실패:", err);
-                    showModal("카카오 로그인 실패");
+                    // alert("카카오 로그인 실패");
                 }
             });
         }
     </script>
-</body>
 
 </html>
