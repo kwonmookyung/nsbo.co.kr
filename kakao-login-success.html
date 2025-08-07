@@ -2,206 +2,377 @@
 <html lang="ko">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>로그인 완료 | 착한소상공인지원마켓</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        input[type="submit"].fit,
+        input[type="reset"].fit,
+        input[type="button"].fit,
+        button.fit,
+        .button.fit {
+            width: 100%;
+        }
 
-        body {
-            font-family: 'Inter', sans-serif;
+        input[type="submit"].small,
+        input[type="reset"].small,
+        input[type="button"].small,
+        button.small,
+        .button.small {
+            font-size: 0.8em;
+        }
+
+        /* 배너 슬라이드용 */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            position: relative;
+            /* 부모가 높이 감지하게 함 */
+        }
+
+        .slide img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 배너와 헤더 겹침 방지 + 아래 콘텐츠 여유 */
+        #banner {
+            margin-top: 80px;
+            margin-bottom: 4em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fade {
+            animation-name: fade;
+            animation-duration: 1s;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0.4;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            margin: 0 5px;
+            background-color: #000000;
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: #ffffff;
+        }
+
+        .dots-container {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* 모바일 대응: AppBar 숨기고 여백 조정 */
+        #mobile-logo {
+            display: none;
+            position: fixed;
+            top: 1em;
+            left: 1em;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #000 !important;
+            text-decoration: none;
+            z-index: 2000;
+            background: white;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        @media screen and (max-width: 3840px) and (min-width: 1024px) {
+            .wrapper.style1 {
+                padding-top: 6em !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+            #header {
+                display: none !important;
+            }
+
+            .dots-container {
+                bottom: 15px;
+            }
+
+            #banner {
+                margin-bottom: 6em;
+                /* 여유 있게 */
+            }
+
+            #mobile-logo {
+                display: block !important;
+            }
+
+            #logo,
+            #logo img {
+                display: none !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+            img[src*="logo.jpg"] {
+                display: none !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+            #banner {
+                margin-bottom: 1em !important;
+            }
+
+            .wrapper.style1 {
+                padding-top: 1em !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* .box.highlight 전체를 왼쪽 정렬로 붙이기 */
+            .box.highlight {
+                text-align: left !important;
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+
+            /* 전체 컨테이너 여백 줄이기 */
+            .wrapper.style1>.container {
+                padding-left: 3em !important;
+                padding-right: 1em !important;
+            }
+
+            /* 내부 col 섹션의 여백도 최소화 */
+            .row.gtr-200>section {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+
+            /* 하이라이트 박스 안쪽 텍스트 왼쪽 정렬 */
+            .box.highlight {
+                text-align: left !important;
+            }
+
+
+            /* 아이콘 위치도 왼쪽으로 */
+            .box.highlight .icon {
+                margin: 0 0 1em 0;
+                display: inline-block;
+                float: left;
+            }
+
+            .box.highlight h3,
+            .box.highlight p {
+                margin-left: 6em;
+                /* 아이콘 옆으로 밀기 (적절히 조정 가능) */
+            }
+        }
+
+        #login-wrapper {
+            margin-top: 120px;
+            text-align: center;
+            padding: 3em 1em;
+        }
+
+        #login-wrapper h2 {
+            font-size: 2em;
+            margin-bottom: 1em;
+        }
+
+        .kakao-button {
+            background-color: #FEE500;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 1em 2em;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .kakao-button:hover {
+            background-color: #f2d900;
+        }
+
+        @media screen and (max-width: 768px) {
+            #login-wrapper {
+                padding: 2em 1em;
+            }
         }
     </style>
+    <meta charset="UTF-8" />
+    <title>로그인 완료 | 착한소상공인지원마켓</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" /> <!-- 기존 홈페이지 스타일 -->
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div id="page-wrapper" class="w-full max-w-xl bg-white p-8 sm:p-12 rounded-xl shadow-lg text-center">
-        <!-- 로딩 스피너 -->
-        <div id="loading" class="flex flex-col items-center justify-center space-y-4">
-            <svg class="animate-spin h-10 w-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-            </svg>
-            <p class="text-gray-600 font-medium">사용자 정보를 처리 중입니다...</p>
-        </div>
+<div id="page-wrapper">
 
-        <!-- 로그인 완료 메시지 (처리가 끝나면 표시) -->
-        <div id="success-content" class="hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">
-                ✅ 회원가입 및 로그인이 완료되었습니다!
-            </h2>
-            <p class="text-lg text-gray-600 mb-8">
-                환영합니다. 착한소상공인지원마켓의 다양한 서비스를 이용해 보세요.
-            </p>
-            <a href="index.html"
-                class="inline-block bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors duration-300">
-                홈페이지로 가기
+    <!-- Header (홈페이지와 동일한 고정 헤더 구성) -->
+    <div id="header" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2em;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    ">
+        <div>
+            <a href="index.html" id="logo">
+                <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
             </a>
         </div>
-
-        <!-- 오류 메시지 (오류 발생 시 표시) -->
-        <div id="error-content" class="hidden">
-            <h2 class="text-3xl font-bold text-red-500 mb-4">
-                ❌ 로그인 중 오류 발생
-            </h2>
-            <p id="error-message" class="text-lg text-gray-600 mb-8">
-                다시 시도해 주세요.
-            </p>
-            <a href="kakao-login.html"
-                class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-colors duration-300">
-                다시 로그인하기
-            </a>
-        </div>
+        <nav id="nav">
+            <ul>
+                <li class="current"><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
+                <li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a></li>
+                <li></li><a href="index.html">홈</a></li>
+                <li> <a href="brand.html">브랜드</a>
+                    <ul>
+                        <li><a href="brand.html#company-intro">회사소개</a></li>
+                        <li><a href="brand.html#ci">회사CI</a></li>
+                        <li><a href="brand.html#culture">기업문화</a></li>
+                        <li><a href="brand.html#sustainability">지속가능경영</a></li>
+                        <li><a href="brand.html#roadmap">로드맵</a></li>
+                    </ul>
+                </li>
+                <li><a href="left-sidebar.html">솔루션</a></li>
+                <li><a href="right-sidebar.html">프로그램</a></li>
+                <li><a href="two-sidebar.html">고객문의</a></li>
+                <li><a href="no-sidebar.html">착소마켓</a></li>
+            </ul>
+        </nav>
     </div>
 
-    <!-- 카카오 SDK -->
-    <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+    <!-- 메인 섹션 -->
+    <section id="main" class="wrapper style1" style="padding-top: 6em;">
+        <div class="container">
+            <header class="major">
+                <h2>회원가입 및 로그인이 완료되었습니다</h2>
+            </header>
+            <ul class="actions special">
+                <li><a href="index.html" class="button primary">홈페이지로 가기</a></li>
+            </ul>
+        </div>
+    </section>
 
-    <!-- Firebase + 사용자 정보 저장 -->
-    <script type="module">
-        // Firebase CDN imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, serverTimestamp, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+</div>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.dropotron.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<!-- 카카오 SDK -->
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<script>
+    Kakao.init('cc58d703cacde86ff1976fd723a04854');
+</script>
 
-        // 전역 변수에서 Firebase 설정 가져오기
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+<!-- Firebase + 사용자 정보 저장 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        let app;
-        let db;
-        let auth;
-        let userId;
+    const firebaseConfig = {
+        apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+        authDomain: "nbso-b7f41.firebaseapp.com",
+        projectId: "nbso-b7f41",
+        storageBucket: "nbso-b7f41.appspot.com",
+        messagingSenderId: "94203359555",
+        appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+        measurementId: "G-YCWF8ENKC4"
+    };
 
-        // UI 요소
-        const loadingScreen = document.getElementById('loading');
-        const successContent = document.getElementById('success-content');
-        const errorContent = document.getElementById('error-content');
-        const errorMessageElement = document.getElementById('error-message');
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        function showError(message) {
-            loadingScreen.classList.add('hidden');
-            errorContent.classList.remove('hidden');
-            errorMessageElement.textContent = message;
-        }
+    Kakao.API.request({
+        url: '/v2/user/me',
+        success: async function (response) {
+            const userInfo = {
+                uid: response.id,
+                email: response.kakao_account?.email ?? null,
+                phone: response.kakao_account?.phone_number ?? null,
+                gender: response.kakao_account?.gender ?? null,
+                age_range: response.kakao_account?.age_range ?? null,
+                nickname: response.properties?.nickname ?? null,
+                profile_image: response.properties?.profile_image ?? null,
+                timestamp: serverTimestamp(),
+                loginSource: localStorage.getItem("loginSource") || "unknown",
+                marketingConsent: response.kakao_account?.marketing?.enabled ?? false
+            };
 
-        async function initFirebaseAndAuth() {
-            try {
-                // Firebase 앱 초기화
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Firebase 인증
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("✅ Custom token으로 인증 완료");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("✅ 익명으로 인증 완료");
-                }
-                userId = auth.currentUser.uid;
-                console.log("✅ 현재 사용자 UID:", userId);
-            } catch (e) {
-                console.error("❌ Firebase 초기화 또는 인증 실패:", e);
-                showError("Firebase 초기화 중 오류가 발생했습니다.");
-                throw e; // 오류를 다시 던져서 이후 로직이 실행되지 않게 함
-            }
-        }
-
-        async function saveUserData(userInfo) {
-            // 사용자 정보 저장 경로: /artifacts/{appId}/users/{userId}/user_data
-            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_data`, userInfo.uid.toString());
-            await setDoc(userDocRef, {
-                ...userInfo,
-                firestoreUid: userId,
-                connectedAt: serverTimestamp()
-            });
+            await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
             console.log("✅ 사용자 정보 저장 완료");
-        }
 
-        async function linkSurveyResult(userInfo) {
-            const surveyUUID = localStorage.getItem("surveyUUID");
-            if (surveyUUID) {
-                try {
-                    // 설문 결과 저장 경로: /artifacts/{appId}/public/data/survey_results
-                    const surveyRef = doc(db, `artifacts/${appId}/public/data/survey_results`, surveyUUID);
-                    await updateDoc(surveyRef, {
-                        kakaoUid: userInfo.uid,
-                        kakaoEmail: userInfo.email,
-                        kakaoNickname: userInfo.nickname,
-                        connectedAt: serverTimestamp()
-                    });
-                    console.log("✅ 설문 결과와 카카오 사용자 연결 완료");
-                } catch (e) {
-                    console.error("❌ 설문 결과 연결 실패:", e);
-                }
-            } else {
-                console.warn("❗ surveyUUID 없음: 설문 결과 연결 생략");
-            }
-        }
-
-        async function processLogin() {
-            await initFirebaseAndAuth();
-
-            Kakao.init('cc58d703cacde86ff1976fd723a04854');
-
-            Kakao.API.request({
-                url: '/v2/user/me',
-                success: async function (response) {
-                    const userInfo = {
-                        uid: response.id,
-                        email: response.kakao_account?.email ?? null,
-                        phone: response.kakao_account?.phone_number ?? null,
-                        gender: response.kakao_account?.gender ?? null,
-                        age_range: response.kakao_account?.age_range ?? null,
-                        nickname: response.properties?.nickname ?? null,
-                        profile_image: response.properties?.profile_image ?? null,
-                        timestamp: serverTimestamp(),
-                        loginSource: localStorage.getItem("loginSource") || "unknown",
-                        marketingConsent: response.kakao_account?.marketing?.enabled ?? false
-                    };
-
+            if (userInfo.loginSource === "result") {
+                const surveyUUID = localStorage.getItem("surveyUUID");
+                if (surveyUUID) {
                     try {
-                        // Firebase에 사용자 정보 저장
-                        await saveUserData(userInfo);
-
-                        // 설문 결과와 연결
-                        if (userInfo.loginSource === "result") {
-                            await linkSurveyResult(userInfo);
-                        }
-
-                        // 로컬 스토리지 정리
-                        localStorage.removeItem("loginSource");
-                        localStorage.removeItem("surveyUUID");
-
-                        // 성공 UI 표시
-                        loadingScreen.classList.add('hidden');
-                        successContent.classList.remove('hidden');
-
+                        const surveyRef = doc(db, "survey_results", surveyUUID);
+                        await updateDoc(surveyRef, {
+                            kakaoUid: userInfo.uid,
+                            kakaoEmail: userInfo.email,
+                            kakaoNickname: userInfo.nickname,
+                            connectedAt: serverTimestamp()
+                        });
+                        console.log("✅ 설문 결과와 카카오 사용자 연결 완료");
                     } catch (e) {
-                        console.error("❌ Firebase 데이터 처리 실패:", e);
-                        showError("데이터 저장 중 오류가 발생했습니다.");
+                        console.error("❌ 설문 결과 연결 실패:", e);
                     }
-                },
-                fail: function (error) {
-                    console.error("❌ 카카오 사용자 정보 요청 실패:", error);
-                    showError("카카오 사용자 정보를 가져오는 데 실패했습니다.");
+                } else {
+                    console.warn("❗ surveyUUID 없음: 설문 결과 연결 생략");
                 }
-            });
-        }
+            }
 
-        // 페이지 로드 시 로그인 처리 시작
-        processLogin().catch(e => {
-            console.error("❌ 전체 로그인 처리 과정 실패:", e);
-        });
-    </script>
+            localStorage.removeItem("loginSource");
+            localStorage.removeItem("surveyUUID");
+        },
+        fail: function (error) {
+            console.error("❌ 카카오 사용자 정보 요청 실패:", error);
+            alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+    });
+</script>
 </body>
 
 </html>
