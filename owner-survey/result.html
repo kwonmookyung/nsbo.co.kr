@@ -62,8 +62,18 @@
     import { getFirestore, collection, addDoc, doc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // 전역 변수 설정
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    // ❌ 환경 변수가 제공되지 않을 때를 대비해 Firebase 설정을 수동으로 추가합니다.
+    const firebaseConfig = typeof __firebase_config !== 'undefined' && Object.keys(JSON.parse(__firebase_config)).length > 0
+      ? JSON.parse(__firebase_config)
+      : {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+      };
+    const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     let app, db, auth;
     let userId = null;
@@ -99,10 +109,12 @@
           return userId;
         } else {
           console.error("❌ Firebase 설정이 유효하지 않습니다.");
+          showModal("Firebase 설정이 올바르지 않습니다.");
           return null;
         }
       } catch (error) {
         console.error("❌ Firebase 초기화 또는 로그인 중 오류:", error);
+        showModal("Firebase 연결 중 오류가 발생했습니다. 다시 시도해 주세요.");
         return null;
       }
     }
@@ -131,7 +143,7 @@
       }
 
       try {
-        // 💡 설문 질문 데이터를 다시 불러와 답변 내용을 상세하게 저장하는 로직을 복원합니다.
+        // 설문 질문 데이터를 다시 불러와 답변 내용을 상세하게 저장하는 로직
         const res = await fetch("data/question.json");
         const questionsData = await res.json();
 
@@ -218,25 +230,11 @@
       const surveyUUID = await saveResultToFirestore(userId);
       if (!surveyUUID) return;
 
+      // 💡 로그인 성공 시 리다이렉트 URL에 UUID를 추가하여 kakao-login-success.html에서 사용할 수 있도록 합니다.
       Kakao.Auth.login({
         success: function (authObj) {
           console.log("✅ 카카오 로그인 성공:", JSON.stringify(authObj));
-
-          const updateSurveyResult = async () => {
-            try {
-              const surveyRef = doc(db, `/artifacts/${appId}/public/data/survey_results`, surveyUUID);
-              await updateDoc(surveyRef, {
-                kakaoUid: authObj.access_token,
-                connectedAt: serverTimestamp(),
-              });
-              console.log("✅ 설문 결과 문서에 카카오 UID 연결 완료");
-              window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
-            } catch (error) {
-              console.error("❌ Firestore 업데이트 실패:", error);
-              showModal("카카오 로그인 정보 연결 실패.");
-            }
-          };
-          updateSurveyResult();
+          window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
         },
         fail: function (err) {
           console.error("❌ 카카오 로그인 실패:", JSON.stringify(err));
@@ -257,8 +255,14 @@
       }
 
       // 카카오 SDK 초기화
-      Kakao.init("cc58d703cacde86ff1976fd723a04854");
-      console.log("✅ 카카오 SDK 초기화 완료");
+      if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+        // 💡 YOUR_KAKAO_API_KEY 대신 실제 API 키를 입력하세요.
+        Kakao.init("cc58d703cacde86ff1976fd723a04854");
+        console.log("✅ 카카오 SDK 초기화 완료");
+      }
+
+      // 카카오 로그인 버튼에 이벤트 리스너 추가
+      document.getElementById('kakao-btn').addEventListener('click', connectKakaoAndSaveResult);
     };
   </script>
 </body>
