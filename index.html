@@ -191,52 +191,67 @@
 	<meta name="naver-site-verification" content="f9411be38710c527c09a36b5f2afa29f4eef7260" />
 </head>
 <script>
-	window.addEventListener('DOMContentLoaded', async () => {
-		const response = await fetch('survey-popup.html');
-		if (response.ok) {
-			const popupHtml = await response.text();
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = popupHtml;
-			const surveyPopup = tempDiv.firstElementChild; // 팝업 요소 참조
+    window.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch('survey-popup.html');
+        if (response.ok) {
+            const popupHtml = await response.text();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = popupHtml;
+            const surveyPopup = tempDiv.firstElementChild; 
 
-			document.body.appendChild(surveyPopup);
+            document.body.appendChild(surveyPopup);
 
-			// 팝업이 열릴 때 body에 패딩 추가
-			// 앱바의 높이를 고려하여 조정합니다. 현재 앱바의 높이는 CSS에서 80px로 보입니다.
-			const headerHeight = document.getElementById('header').offsetHeight;
-			document.body.style.paddingTop = `${headerHeight}px`;
-			document.body.style.boxSizing = 'border-box'; // 패딩이 레이아웃에 포함되도록
+            const header = document.getElementById('header');
+            const headerHeight = header ? header.offsetHeight : 0; // 헤더가 없을 경우 0
 
-			// 팝업 닫기 버튼에 이벤트 리스너 추가
-			const closeButton = surveyPopup.querySelector('button');
-			if (closeButton) {
-				closeButton.addEventListener('click', () => {
-					surveyPopup.remove();
-					document.body.style.paddingTop = '0'; // 팝업 닫힐 때 패딩 제거
-					document.body.style.boxSizing = ''; // box-sizing 원래대로 되돌림
-				});
-			}
+            // 모바일 로고가 표시되는 경우 추가적인 여유 공간 확보 (선택 사항)
+            const mobileLogo = document.getElementById('mobile-logo');
+            const mobileLogoHeight = mobileLogo && window.getComputedStyle(mobileLogo).display !== 'none' ? mobileLogo.offsetHeight : 0;
+            
+            // 실제 패딩 값 계산: 앱바 높이 + 추가 여유 공간 (예: 10px)
+            let actualPaddingTop = 0;
+            // 1024px 이하에서 #header가 사라지고 #mobile-logo가 나타나므로,
+            // 이 미디어 쿼리 범위 내에서만 패딩을 적용해야 합니다.
+            // 그리고 그 패딩은 mobile-logo의 높이를 고려해야 합니다.
+            if (window.matchMedia('(max-width: 1024px)').matches) {
+                // 모바일 환경 (앱바 숨겨짐, 모바일 로고 표시)
+                actualPaddingTop = mobileLogoHeight + 20; // 모바일 로고 높이 + 여유 공간
+                // 모바일에서 팝업이 전체 화면을 덮기 때문에,
+                // 이 패딩은 팝업 내부의 콘텐츠 시작 위치를 조절하는 데 사용됩니다.
+                // 팝업 내부 콘텐츠에 상단 패딩을 주는 방식으로 변경하는 것이 더 정확할 수 있습니다.
+            } else {
+                // 데스크탑 환경 (앱바 표시)
+                actualPaddingTop = headerHeight + 10; // 앱바 높이 + 여유 공간
+            }
 
-			// 추가: 모바일 환경에서만 패딩 적용
-			// (팝업창 자체의 CSS가 flex를 이용해 중앙 정렬되므로,
-			// 앱바가 없을 때 전체적으로 상단으로 붙는 현상 방지)
-			const mediaQuery = window.matchMedia('(max-width: 1024px)'); // 모바일 기준 미디어 쿼리
+            document.body.style.paddingTop = `${actualPaddingTop}px`;
+            document.body.style.boxSizing = 'border-box';
 
-			function handleMediaQueryChange(e) {
-				if (e.matches) { // 모바일 환경일 때
-					document.body.style.paddingTop = `${headerHeight}px`;
-				} else { // 데스크탑 환경일 때
-					document.body.style.paddingTop = '0';
-				}
-			}
+            const closeButton = surveyPopup.querySelector('button');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    surveyPopup.remove();
+                    document.body.style.paddingTop = '0'; 
+                    document.body.style.boxSizing = ''; 
+                });
+            }
 
-			// 초기 로드 시 적용
-			handleMediaQueryChange(mediaQuery);
-			// 미디어 쿼리 변경 감지
-			mediaQuery.addEventListener('change', handleMediaQueryChange);
+            // 미디어 쿼리 변경 감지 리스너 (paddingTop 조정)
+            const mediaQuery = window.matchMedia('(max-width: 1024px)');
+            const updatePadding = (e) => {
+                if (e.matches) { // 모바일 환경
+                    const currentMobileLogoHeight = mobileLogo && window.getComputedStyle(mobileLogo).display !== 'none' ? mobileLogo.offsetHeight : 0;
+                    document.body.style.paddingTop = `${currentMobileLogoHeight + 20}px`;
+                } else { // 데스크탑 환경
+                    const currentHeaderHeight = header ? header.offsetHeight : 0;
+                    document.body.style.paddingTop = `${currentHeaderHeight + 10}px`;
+                }
+            };
 
-		}
-	});
+            updatePadding(mediaQuery); // 초기 로드 시 한 번 실행
+            mediaQuery.addEventListener('change', updatePadding);
+        }
+    });
 </script>
 
 <body class="is-preload">
