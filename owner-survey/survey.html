@@ -38,12 +38,12 @@
     let stage2Target = "";
     let stage3Target = "";
 
+    // loadQuestions 함수에서 renderQuestions(questionsData.common); 호출 제거
     async function loadQuestions() {
       const response = await fetch("data/question.json");
       questionsData = await response.json();
-      renderQuestions(questionsData.common);
+      // renderQuestions(questionsData.common); // <-- 이 줄은 제거합니다.
     }
-
     function renderQuestions(questions) {
       const form = document.getElementById("survey-form");
       form.innerHTML = "";
@@ -106,22 +106,28 @@
 
     document.getElementById("next-button").addEventListener("click", (e) => {
       e.preventDefault();
-      saveAnswersAndScore();
+      // 첫 단계에서는 답변 저장을 하지 않습니다 (소개 화면이므로)
+      if (stage > 0) { // stage가 0보다 클 때만 답변을 저장하고 점수를 매깁니다.
+        saveAnswersAndScore();
+      }
       stage++;
 
       switch (stage) {
-        case 1:
-          renderQuestions(questionsData.stage1);
+        case 1: // 이제 stage가 1이 되었을 때 common 질문을 로드합니다.
+          renderQuestions(questionsData.common);
           break;
         case 2:
+          renderQuestions(questionsData.stage1);
+          break;
+        case 3:
           stage2Target = getClosestPair();
           renderQuestions(questionsData.stage2[stage2Target]);
           break;
-        case 3:
+        case 4:
           stage3Target = getClosestPair();
           renderQuestions(questionsData.stage3[stage3Target]);
           break;
-        case 4:
+        case 5: // 최종 결과 페이지로 이동하는 단계는 stage 5가 됩니다.
           localStorage.setItem("surveyAnswers", JSON.stringify(answers));
           localStorage.setItem("surveyScores", JSON.stringify(scores));
           localStorage.setItem("savedAt", Date.now());
@@ -130,7 +136,7 @@
       }
     });
 
-    loadQuestions();
+    loadQuestions(); // questionsData를 미리 불러오기 위해 이 호출은 유지합니다.
   </script>
 </body>
 
