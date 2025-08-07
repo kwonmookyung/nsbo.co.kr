@@ -299,11 +299,12 @@
               const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
               const userData = {
-                nickname: account.profile?.nickname || "",
-                gender: account.gender || "",
-                age_range: account.age_range || "",
-                phone_number: account.phone_number || "",
-                lastLoginAt: serverTimestamp()
+                name: account.name || null,
+                gender: account.gender || null,
+                age_range: account.age_range || null,
+                birthday: account.birthday || null,
+                phone_number: account.phone_number || null,
+                timestamp: firebase.firestore.Timestamp.now()
               };
 
               try {
