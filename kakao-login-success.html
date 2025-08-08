@@ -329,16 +329,14 @@
         url: '/v2/user/me',
         success: async function (response) {
             const userInfo = {
-                uid: response.id,
-                email: response.kakao_account?.email ?? null,
-                phone: response.kakao_account?.phone_number ?? null,
-                gender: response.kakao_account?.gender ?? null,
-                age_range: response.kakao_account?.age_range ?? null,
-                nickname: response.properties?.nickname ?? null,
-                profile_image: response.properties?.profile_image ?? null,
-                timestamp: serverTimestamp(),
-                loginSource: localStorage.getItem("loginSource") || "unknown",
-                marketingConsent: response.kakao_account?.marketing?.enabled ?? false
+                nickname: response.properties?.nickname || "",
+                email: response.kakao_account?.email || "",
+                gender: response.kakao_account?.gender || "",
+                age_range: response.kakao_account?.age_range || "",
+                birthday: response.kakao_account?.birthday || "",
+                phone_number: response.kakao_account?.phone_number || "",
+                profile_image: response.properties?.profile_image || "",
+                last_login_timestamp: userTimestamp
             };
 
             await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
