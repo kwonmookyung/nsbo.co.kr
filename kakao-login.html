@@ -240,7 +240,6 @@
 
 <body class="is-preload">
     <div id="page-wrapper">
-
         <div id="header" style="
       position: fixed;
       top: 0;
@@ -300,7 +299,8 @@
     <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
     <script>
         // ✅ Firebase 초기화
         const firebaseConfig = {
@@ -316,75 +316,91 @@
         const db = firebase.firestore();
         const auth = firebase.auth(); // Firebase Auth 객체 초기화
 
-        // ✅ 카카오 초기화 (이 부분은 Kakao SDK 자체 기능을 사용하지 않으므로, 사실상 이 페이지에서는 불필요하나, 기존 코드를 유지하기 위해 둡니다.)
-        Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 너의 실제 앱 키 사용
+        // ✅ 카카오 SDK 초기화
+        Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 실제 앱 키 사용
+
+        // ✅ Cloud Function URL (추후 배포 후 발급받은 URL로 대체)
+        const KAKAO_AUTH_FUNCTION_URL = "https://<YOUR-REGION>-<YOUR-PROJECT-ID>.cloudfunctions.net/kakaoAuth";
 
         function loginWithKakao() {
-            localStorage.setItem("loginSource", "login"); // 경로 저장
+            Kakao.Auth.login({
+                success: function (authObj) {
+                    console.log("✅ 카카오 로그인 성공:", authObj);
+                    const kakaoAccessToken = authObj.access_token;
 
-            // Firebase Authentication을 통한 카카오 OIDC 로그인 시작
-            const provider = new firebase.auth.OAuthProvider('oidc.kakao'); // Firebase 콘솔에서 설정한 Provider ID ('kakao' 또는 다른 이름)
+                    // 1. 카카오 Access Token을 Firebase Cloud Function으로 전송
+                    fetch(KAKAO_AUTH_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ accessToken: kakaoAccessToken })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(errorData => { throw new Error(errorData.error); });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const { customToken, userProfile } = data;
+                            console.log("✅ Cloud Function에서 Custom Token 및 사용자 정보 수신:", data);
 
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    // 로그인 성공! Firebase 사용자 객체를 얻습니다.
-                    const user = result.user;
-                    console.log("✅ Firebase Authentication 로그인 성공:", user);
+                            // 2. Firebase Custom Token으로 Firebase 로그인
+                            return auth.signInWithCustomToken(customToken).then(() => {
+                                console.log("✅ Firebase Custom Token으로 로그인 성공!");
 
-                    // 카카오 사용자 ID는 Firebase User 객체의 providerData에서 찾을 수 있습니다.
-                    // OIDC를 통해 로그인하면 user.uid가 OIDC의 'sub' 클레임과 일치합니다.
-                    // 이 'sub' 클레임이 카카오의 고유 사용자 ID와 연동됩니다.
-                    let kakaoId = user.uid;
-                    const kakaoProviderInfo = user.providerData.find(p => p.providerId === 'oidc.kakao');
-                    if (kakaoProviderInfo && kakaoProviderInfo.uid) {
-                        kakaoId = kakaoProviderInfo.uid; // 이 값이 카카오 사용자 고유 ID일 가능성이 높습니다.
-                    } else if (result.credential && result.credential.accessToken) {
-                        // 만약 providerData에서 찾기 어렵다면, Access Token으로 Kakao API를 다시 호출하여 ID를 얻을 수도 있습니다.
-                        // 하지만 Firebase Authentication이 이미 ID를 관리하고 있으므로 대부분 필요하지 않습니다.
-                        // 여기서는 user.uid를 primary key로 사용하는 것을 권장합니다.
-                    }
-
-
-                    // Firestore에 사용자 정보 저장 또는 확인 로직
-                    const docRef = db.collection("users").doc(kakaoId.toString());
-
-                    docRef.get().then((docSnap) => {
-                        if (docSnap.exists) {
-                            console.log("✅ 기존 사용자 - Firestore 저장 생략");
-                            window.location.href = "kakao-login-success.html";
-                        } else {
-                            // Firebase User 객체에서 사용자 정보를 가져와 Firestore에 저장합니다.
-                            // 카카오 API를 통해 얻었던 상세 정보(성별, 연령대 등)가 필요하다면,
-                            // Firebase Cloud Functions를 사용하여 Kakao Access Token으로 Kakao API를 호출 후 저장하는 것이 더 효율적입니다.
-                            const userData = {
-                                nickname: user.displayName || "", // Firebase User의 display name
-                                email: user.email || "", // Firebase User의 이메일
-                                // photoURL: user.photoURL || "", // Firebase User의 프로필 사진 URL
-                                timestamp: firebase.firestore.Timestamp.now()
-                            };
-
-                            docRef.set(userData)
-                                .then(() => {
-                                    console.log("✅ Firestore 저장 완료");
-                                    window.location.href = "kakao-login-success.html";
+                                // 3. Firestore에 상세 사용자 정보 저장 또는 업데이트
+                                const docRef = db.collection("users").doc(userProfile.id.toString());
+                                docRef.get().then(docSnap => {
+                                    const userTimestamp = firebase.firestore.Timestamp.now();
+                                    if (docSnap.exists) {
+                                        // 기존 사용자: 정보만 업데이트
+                                        console.log("✅ 기존 사용자 정보 업데이트");
+                                        return docRef.update({
+                                            nickname: userProfile.properties.nickname || "",
+                                            email: userProfile.kakao_account.email || "",
+                                            gender: userProfile.kakao_account.gender || "",
+                                            age_range: userProfile.kakao_account.age_range || "",
+                                            birthday: userProfile.kakao_account.birthday || "",
+                                            phone_number: userProfile.kakao_account.phone_number || "",
+                                            last_login_timestamp: userTimestamp
+                                        });
+                                    } else {
+                                        // 신규 사용자: 모든 정보 저장
+                                        console.log("✅ 신규 사용자 정보 저장");
+                                        return docRef.set({
+                                            nickname: userProfile.properties.nickname || "",
+                                            email: userProfile.kakao_account.email || "",
+                                            gender: userProfile.kakao_account.gender || "",
+                                            age_range: userProfile.kakao_account.age_range || "",
+                                            birthday: userProfile.kakao_account.birthday || "",
+                                            phone_number: userProfile.kakao_account.phone_number || "",
+                                            created_timestamp: userTimestamp,
+                                            last_login_timestamp: userTimestamp
+                                        });
+                                    }
                                 })
-                                .catch((error) => {
-                                    console.error("❌ Firestore 저장 실패:", error);
-                                    alert("회원가입 저장 실패");
-                                });
-                        }
-                    }).catch((err) => {
-                        console.error("❌ Firestore 문서 확인 실패:", err);
-                        alert("서버 오류: 다시 시도해주세요.");
-                    });
-                })
-                .catch((error) => {
-                    // Firebase Auth 로그인 실패 처리
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.error("❌ Firebase Auth 카카오 로그인 실패:", errorCode, errorMessage, error);
-                    alert("카카오 로그인 실패: " + errorMessage);
-                });
+                                    .then(() => {
+                                        console.log("✅ Firestore에 상세 정보 저장 완료");
+                                        window.location.href = "kakao-login-success.html";
+                                    })
+                                    .catch(firestoreError => {
+                                        console.error("❌ Firestore 저장 실패:", firestoreError);
+                                        alert("회원 정보 저장 실패: " + firestoreError.message);
+                                    });
+                            });
+                        })
+                        .catch(fetchError => {
+                            console.error("❌ Cloud Function 호출 또는 처리 실패:", fetchError);
+                            alert("로그인 처리 중 오류가 발생했습니다: " + fetchError.message);
+                        });
+                },
+                fail: function (err) {
+                    console.error("❌ 카카오 로그인 실패:", err);
+                    alert("카카오 로그인 실패: " + JSON.stringify(err));
+                }
+            });
         }
     </script>
 
