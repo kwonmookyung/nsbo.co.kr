@@ -202,7 +202,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+    import { parseGeminiSolution } from "/owner-survey/gemini-parser.js";
+    window.GEMINI_API_KEY = "AIzaSyCxxCblNa3Vl7ORu-eS2KgjFPE9ArYkMfM";
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -386,18 +387,22 @@
           const prompt = buildPrompt(data, typeKey, info);
           const raw = await callGemini(prompt);
 
-          let jsonText = raw;
-          const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-          if (m) jsonText = m[1];
-
-          let parsed = null;
-          try { parsed = JSON.parse(jsonText); } catch { }
-          const pretty = parsed ? JSON.stringify(parsed, null, 2) : raw;
+          // ✅ 전용 파서로 견고하게 파싱
+          const parsed = parseGeminiSolution(raw);
+          const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
           showAI(pretty);
+          if (!parsed.ok && parsed.warning) {
+            document.getElementById("ai-status").textContent =
+              "주의: " + parsed.warning + " — 원문/후보를 표시합니다.";
+          }
 
           const me = auth.currentUser?.uid || "";
           if (data.ownerUid && me && data.ownerUid === me) {
-            await setDoc(ref, { aiSolution: parsed || { raw }, aiGeneratedAt: serverTimestamp() }, { merge: true });
+            await setDoc(ref, {
+              aiSolution: parsed.ok ? parsed.data : { raw },
+              aiGeneratedAt: serverTimestamp(),
+              aiParseStatus: parsed.ok ? "ok" : "fallback"
+            }, { merge: true });
           }
         } catch (err) {
           document.getElementById("ai-status").textContent = "생성 실패: " + (err?.message || err);
