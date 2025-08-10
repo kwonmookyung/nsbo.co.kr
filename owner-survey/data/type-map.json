@@ -1,0 +1,28 @@
+{
+  "SWLE": {
+    "name": "현장 영업형 스프린터",
+    "tagline": "빠른 실행과 현장 감각으로 즉시 매출을 만든다.",
+    "strengths": ["의사결정이 빠름", "고객 대면/세일즈 강함", "현장 문제 해결 능력"],
+    "weaknesses": ["장기 전략/브랜딩 소홀", "데이터 기반 의사결정 약함", "운영 표준화 미흡"]
+  },
+  "SWLQ": {
+    "name": "현장 영업형 장인",
+    "tagline": "로컬 단골과 품질로 안정 매출을 만든다.",
+    "strengths": ["고객 충성도 관리", "품질 안정화/리텐션", "현장 운영 노하우"],
+    "weaknesses": ["확장/자동화 느림", "디지털 전환 저항", "마케팅 실험 적음"]
+  },
+  "SWRE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "SWRQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "STLE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "STLQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "STRE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "STRQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "IWLE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "IWLQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "IWRE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "IWRQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "ITLE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "ITLQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "ITRE": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] },
+  "ITRQ": { "name": "", "tagline": "", "strengths": [""], "weaknesses": [""] }
+}
