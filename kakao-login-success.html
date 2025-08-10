@@ -329,14 +329,14 @@
         url: '/v2/user/me',
         success: async function (response) {
             const userInfo = {
-                nickname: response.properties?.nickname || "",
-                email: response.kakao_account?.email || "",
-                gender: response.kakao_account?.gender || "",
-                age_range: response.kakao_account?.age_range || "",
-                birthday: response.kakao_account?.birthday || "",
-                phone_number: response.kakao_account?.phone_number || "",
-                profile_image: response.properties?.profile_image || "",
-                last_login_timestamp: userTimestamp
+                nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
+                email: response.kakao_account?.email ?? "",
+                gender: response.kakao_account?.gender ?? "",
+                age_range: response.kakao_account?.age_range ?? "",
+                birthday: response.kakao_account?.birthday ?? "",
+                phone_number: response.kakao_account?.phone_number ?? "",
+                profile_image: response.kakao_account?.profile?.profile_image_url ?? response.properties?.profile_image ?? "",
+                last_login_timestamp: firebase.firestore.Timestamp.now()
             };
 
             await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
