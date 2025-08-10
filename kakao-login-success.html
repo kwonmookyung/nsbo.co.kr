@@ -309,67 +309,104 @@
 
 <!-- Firebase + 사용자 정보 저장 -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, doc, setDoc, updateDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
-        authDomain: "nbso-b7f41.firebaseapp.com",
-        projectId: "nbso-b7f41",
-        storageBucket: "nbso-b7f41.appspot.com",
-        messagingSenderId: "94203359555",
-        appId: "1:94203359555:web:07f9ee21d1291670363ff6",
-        measurementId: "G-YCWF8ENKC4"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+    authDomain: "nbso-b7f41.firebaseapp.com",
+    projectId: "nbso-b7f41",
+    storageBucket: "nbso-b7f41.appspot.com",
+    messagingSenderId: "94203359555",
+    appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+    measurementId: "G-YCWF8ENKC4"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-    Kakao.API.request({
-        url: '/v2/user/me',
-        success: async function (response) {
-            const userInfo = {
-                nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
-                email: response.kakao_account?.email ?? "",
-                gender: response.kakao_account?.gender ?? "",
-                age_range: response.kakao_account?.age_range ?? "",
-                birthday: response.kakao_account?.birthday ?? "",
-                phone_number: response.kakao_account?.phone_number ?? "",
-                profile_image: response.kakao_account?.profile?.profile_image_url ?? response.properties?.profile_image ?? "",
-                last_login_timestamp: firebase.firestore.Timestamp.now()
-            };
+  // ✅ 익명 로그인 보장 (이미 로그인 상태면 그대로 통과)
+  async function ensureAnonAuth(auth) {
+    const current = auth.currentUser;
+    if (current) return current;
 
-            await setDoc(doc(db, "users", userInfo.uid.toString()), userInfo);
-            console.log("✅ 사용자 정보 저장 완료");
-
-            if (userInfo.loginSource === "result") {
-                const surveyUUID = localStorage.getItem("surveyUUID");
-                if (surveyUUID) {
-                    try {
-                        const surveyRef = doc(db, "survey_results", surveyUUID);
-                        await updateDoc(surveyRef, {
-                            kakaoUid: userInfo.uid,
-                            kakaoEmail: userInfo.email,
-                            kakaoNickname: userInfo.nickname,
-                            connectedAt: serverTimestamp()
-                        });
-                        console.log("✅ 설문 결과와 카카오 사용자 연결 완료");
-                    } catch (e) {
-                        console.error("❌ 설문 결과 연결 실패:", e);
-                    }
-                } else {
-                    console.warn("❗ surveyUUID 없음: 설문 결과 연결 생략");
-                }
-            }
-
-            localStorage.removeItem("loginSource");
-            localStorage.removeItem("surveyUUID");
-        },
-        fail: function (error) {
-            console.error("❌ 카카오 사용자 정보 요청 실패:", error);
-            alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
-        }
+    return new Promise((resolve, reject) => {
+      const unsub = onAuthStateChanged(auth, (user) => {
+        if (user) { unsub(); resolve(user); }
+      });
+      signInAnonymously(auth).catch((err) => {
+        console.error("❌ 익명 로그인 실패:", err);
+        alert("Firebase 익명 로그인을 활성화해주세요 (Authentication > Sign-in method).");
+        reject(err);
+      });
     });
+  }
+
+  // Kakao SDK 초기화 안전장치
+  if (typeof Kakao !== "undefined" && !Kakao.isInitialized()) {
+    Kakao.init("cc58d703cacde86ff1976fd723a04854");
+  }
+
+  // 1) 먼저 Firebase 익명 로그인 확보
+  await ensureAnonAuth(auth);
+
+  // 2) 로그인 확보 후 카카오 사용자 정보 요청 및 Firestore 저장
+  Kakao.API.request({
+    url: "/v2/user/me",
+    success: async function (response) {
+      const userInfo = {
+        uid: response.id?.toString() ?? "",
+        nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
+        email: response.kakao_account?.email ?? "",
+        gender: response.kakao_account?.gender ?? "",
+        age_range: response.kakao_account?.age_range ?? "",
+        birthday: response.kakao_account?.birthday ?? "",
+        phone_number: response.kakao_account?.phone_number ?? "",
+        profile_image: response.kakao_account?.profile?.profile_image_url ?? response.properties?.profile_image ?? "",
+        last_login_timestamp: serverTimestamp()  // ✅ v9 방식
+      };
+
+      // ✅ users/{kakaoId}에 upsert
+      await setDoc(doc(db, "users", userInfo.uid), userInfo, { merge: true });
+      console.log("✅ 사용자 정보 저장 완료");
+
+      // ✅ 설문 결과와 연결 (loginSource는 localStorage에서)
+      const loginSource = localStorage.getItem("loginSource") || "";
+      if (loginSource === "result") {
+        const surveyUUID = localStorage.getItem("surveyUUID");
+        if (surveyUUID) {
+          try {
+            const surveyRef = doc(db, "survey_results", surveyUUID);
+            await updateDoc(surveyRef, {
+              kakaoUid: userInfo.uid,
+              kakaoEmail: userInfo.email,
+              kakaoNickname: userInfo.nickname,
+              connectedAt: serverTimestamp()
+            });
+            console.log("✅ 설문 결과와 카카오 사용자 연결 완료");
+          } catch (e) {
+            console.error("❌ 설문 결과 연결 실패:", e);
+          }
+        } else {
+          console.warn("❗ surveyUUID 없음: 설문 결과 연결 생략");
+        }
+      }
+
+      // 정리
+      localStorage.removeItem("loginSource");
+      localStorage.removeItem("surveyUUID");
+    },
+    fail: function (error) {
+      console.error("❌ 카카오 사용자 정보 요청 실패:", error);
+      alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  });
 </script>
 </body>
 
