@@ -133,11 +133,15 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, doc, serverTimestamp, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     let app, db, auth;
     let userId = "";
     let isFirebaseReady = false;
+
+    // Canvas 환경의 전역 변수가 있으면 사용하고, 없으면 하드코딩된 값을 사용
+    const appId = 'nbso-b7f41'; // (당신 규칙에 맞춘 실제 값)
 
     function showModal(message) {
       document.getElementById("modal-message").innerText = message;
@@ -148,9 +152,12 @@
       document.getElementById("modal-overlay").classList.remove("show");
     });
 
+    /**
+     * Firebase를 초기화하고 익명 로그인을 수행합니다.
+     * 인증 상태가 변경될 때마다 userId를 업데이트하고 설문 결과를 저장하는 로직을 실행합니다.
+     */
     async function setupFirebase() {
       try {
-        // ✅ Canvas 환경의 전역 변수가 있으면 사용하고, 없으면 하드코딩된 값을 사용
         const providedConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
           apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
           authDomain: "nbso-b7f41.firebaseapp.com",
@@ -166,6 +173,7 @@
           db = getFirestore(app);
           auth = getAuth(app);
 
+          // 익명 로그인 시도 (이미 로그인되어 있으면 그대로 유지)
           const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
           if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
@@ -173,9 +181,22 @@
             await signInAnonymously(auth);
           }
 
-          userId = auth.currentUser?.uid || crypto.randomUUID();
-          console.log("✅ Firebase 초기화 및 로그인 완료. User ID:", userId);
-          isFirebaseReady = true;
+          // 인증 상태 변화를 감지하는 리스너 설정
+          onAuthStateChanged(auth, user => {
+            if (user) {
+              userId = user.uid;
+              isFirebaseReady = true;
+              console.log("✅ Firebase 초기화 및 로그인 완료. User ID:", userId);
+
+              // 페이지 로드 시 결과 자동 저장 (단, 이미 저장되지 않았을 경우)
+              if (localStorage.getItem("resultSaved") !== "true") {
+                saveResultToFirestore();
+              }
+            } else {
+              console.error("❌ Firebase 인증 상태 변경 실패: 사용자가 없습니다.");
+            }
+          });
+
         } else {
           console.error("❌ Firebase 설정이 유효하지 않습니다.");
         }
@@ -184,13 +205,16 @@
       }
     }
 
+    /**
+     * 설문 결과를 Firestore에 저장합니다. 익명 로그인 후 딱 한 번만 실행됩니다.
+     */
     async function saveResultToFirestore() {
-      if (!isFirebaseReady) {
+      if (!isFirebaseReady || !userId) {
         console.error("❌ Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.");
-        showModal("서버 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
         return null;
       }
 
+      // localStorage에 이미 결과가 저장되어 있다면 중복 저장하지 않음
       if (localStorage.getItem("resultSaved") === "true") {
         console.log("ℹ️ 설문 결과가 이미 저장되었습니다. UUID:", localStorage.getItem("surveyUUID"));
         return localStorage.getItem("surveyUUID");
@@ -198,7 +222,7 @@
 
       const answers = JSON.parse(localStorage.getItem("surveyAnswers"));
       const scores = JSON.parse(localStorage.getItem("surveyScores"));
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+      const surveyUUID = crypto.randomUUID(); // 고유 ID 생성
 
       try {
         const res = await fetch("data/question.json");
@@ -238,19 +262,25 @@
         }
 
         const finalType = calculateFinalType(scores);
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1시간 후 만료
 
-        const docRef = await addDoc(collection(db, `/artifacts/${appId}/public/data/survey_results`), {
+        const docRef = doc(db, `artifacts/${appId}/public/data/survey_results`, surveyUUID);
+        await setDoc(docRef, {
+          ownerUid: userId, // 익명 사용자의 UID를 ownerUid로 저장
           timestamp: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          kakaoLinked: false,
+          linkedAt: null,
           responses: allResponses,
           finalScores: scores,
           finalType: finalType,
-          userId: userId,
         });
 
         localStorage.setItem("resultSaved", "true");
-        localStorage.setItem("surveyUUID", docRef.id);
-        console.log("✅ 설문 결과 저장됨. UUID:", docRef.id);
-        return docRef.id;
+        localStorage.setItem("surveyUUID", surveyUUID);
+        console.log("✅ 설문 결과 저장됨. UUID:", surveyUUID, "Owner UID:", userId);
+        return surveyUUID;
       } catch (error) {
         console.error("❌ Firestore 저장 중 오류:", error);
         showModal("설문 결과 저장 중 오류가 발생했습니다.");
@@ -279,14 +309,21 @@
       return motiType;
     }
 
+    /**
+     * '카카오로 결과 받기' 버튼 클릭 시 실행되는 함수.
+     * 익명으로 저장된 문서에 카카오 정보를 업데이트합니다.
+     */
     window.submitResult = async function () {
       if (!isFirebaseReady) {
         showModal("서버 연결 중입니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
-      const surveyUUID = await saveResultToFirestore();
-      if (!surveyUUID) return;
+      const surveyUUID = localStorage.getItem("surveyUUID");
+      if (!surveyUUID) {
+        showModal("설문 결과 문서가 생성되지 않았습니다. 다시 시도해 주세요.");
+        return;
+      }
 
       // 카카오 로그인 로직 (기존 코드 유지)
       Kakao.Auth.login({
@@ -296,32 +333,38 @@
             success: async function (res) {
               const kakaoId = res.id.toString();
               const account = res.kakao_account;
-              const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-              const userData = {
-                name: account?.name ?? null,
-                gender: account?.gender ?? null,
-                age_range: account?.age_range ?? null,
-                birthday: account?.birthday ?? null,
-                phone_number: account?.phone_number ?? null,
-                timestamp: firebase.firestore.Timestamp.now()
-              };
-
+              // 익명으로 저장된 설문 결과 문서에 카카오 정보 업데이트
+              const surveyDocRef = doc(db, `artifacts/${appId}/public/data/survey_results`, surveyUUID);
               try {
-                const userRef = doc(db, `/artifacts/${appId}/public/data/users`, kakaoId);
-                const userDoc = await getDoc(userRef);
-                const surveyResults = userDoc.exists() ? userDoc.data().surveyResults || [] : [];
-                surveyResults.push(surveyUUID);
+                await updateDoc(surveyDocRef, {
+                  kakaoLinked: true,
+                  linkedAt: serverTimestamp(),
+                  kakaoUid: kakaoId,
+                  kakaoEmail: account?.email ?? null,
+                  kakaoNickname: account?.profile?.nickname ?? null,
+                });
 
-                await setDoc(userRef, {
-                  ...userData,
-                  surveyResults: [...new Set(surveyResults)]
-                }, { merge: true });
+                console.log("✅ 설문 결과 문서에 카카오 정보 업데이트 완료.");
+
+                // 카카오 사용자 정보 별도 저장
+                const userRef = doc(db, `artifacts/${appId}/public/data/users`, kakaoId);
+                const userData = {
+                  name: account?.name ?? null,
+                  gender: account?.gender ?? null,
+                  age_range: account?.age_range ?? null,
+                  birthday: account?.birthday ?? null,
+                  phone_number: account?.phone_number ?? null,
+                  timestamp: serverTimestamp(),
+                  surveyResults: [surveyUUID],
+                };
+
+                await setDoc(userRef, userData, { merge: true });
 
                 console.log("✅ Firestore 사용자 정보 업데이트 완료.");
                 window.location.href = `kakao-login-success.html?uuid=${surveyUUID}`;
               } catch (error) {
-                console.error("❌ Firestore 저장 실패:", error);
+                console.error("❌ Firestore 업데이트 실패:", error);
                 showModal("회원가입/로그인 정보 저장 실패");
               }
             },
@@ -342,11 +385,6 @@
       await setupFirebase();
       Kakao.init("cc58d703cacde86ff1976fd723a04854");
       console.log("✅ 카카오 SDK 초기화 완료");
-
-      // 페이지 로드 시 결과 자동 저장 (단, 이미 저장되지 않았을 경우)
-      if (localStorage.getItem("resultSaved") !== "true") {
-        saveResultToFirestore();
-      }
     };
   </script>
 </body>
