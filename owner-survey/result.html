@@ -264,7 +264,7 @@
         const finalType = calculateFinalType(scores);
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1시간 후 만료
 
-        const docRef = doc(db, `artifacts/${appId}/public/data/survey_results`, surveyUUID);
+        const docRef = doc(db, `users/${userId}/survey_results`, surveyUUID);
         await setDoc(docRef, {
           ownerUid: userId, // 익명 사용자의 UID를 ownerUid로 저장
           timestamp: serverTimestamp(),
@@ -335,7 +335,7 @@
               const account = res.kakao_account;
 
               // 익명으로 저장된 설문 결과 문서에 카카오 정보 업데이트
-              const surveyDocRef = doc(db, `artifacts/${appId}/public/data/survey_results`, surveyUUID);
+              const surveyDocRef = doc(db, `users/${userId}/survey_results`, surveyUUID);
               try {
                 await updateDoc(surveyDocRef, {
                   kakaoLinked: true,
@@ -348,7 +348,7 @@
                 console.log("✅ 설문 결과 문서에 카카오 정보 업데이트 완료.");
 
                 // 카카오 사용자 정보 별도 저장
-                const userRef = doc(db, `artifacts/${appId}/public/data/users`, kakaoId);
+                const userRef = doc(db, `users/${userId}/private`, "kakao");
                 const userData = {
                   name: account?.name ?? null,
                   gender: account?.gender ?? null,

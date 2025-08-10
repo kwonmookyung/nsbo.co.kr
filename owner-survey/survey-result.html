@@ -2,122 +2,474 @@
 <html lang="ko">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나의 MOTI 분석 결과</title>
+  <meta charset="UTF-8" />
+  <title>설문 결과 | 착한소상공인지원마켓</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <link rel="stylesheet" href="assets/css/main.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background-color: #f0f2f5;
-      text-align: center;
+    .container-narrow {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
     }
-    .container {
+
+    .card {
       background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      width: 90%;
-    }
-    h1 {
-      color: #333;
-      font-size: 2rem;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+      padding: 1.3rem 1.3rem;
       margin-bottom: 1rem;
     }
-    p {
+
+    .card h2 {
+      margin: 0 0 .6rem;
+      font-size: 1.4rem;
+    }
+
+    .muted {
       color: #666;
-      font-size: 1.2rem;
+      font-size: .95rem;
     }
-    .loading {
-      color: #888;
-      font-style: italic;
+
+    .pill {
+      display: inline-block;
+      padding: .35rem .7rem;
+      border-radius: 999px;
+      font-weight: 600;
+      background: #111;
+      color: #fff;
+      font-size: .9rem;
     }
-    .moti-type {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #007bff;
-      margin-top: 1rem;
+
+    .tag {
+      display: inline-block;
+      padding: .25rem .55rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-right: .35rem;
+      margin-bottom: .35rem;
+      font-size: .85rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media(min-width:900px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: .6rem 1rem;
+      background: #111;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: #111;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    .codebox {
+      background: #0b1020;
+      color: #e5ecff;
+      border-radius: 12px;
+      padding: 1rem;
+      white-space: pre-wrap;
+      font-size: .9rem;
+    }
+
+    .small {
+      font-size: .9rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      letter-spacing: .02em;
+      color: #444;
+      margin-bottom: .4rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: #eee;
+      margin: .8rem 0 1.1rem;
+    }
+
+    .right {
+      float: right;
+    }
+
+    .hide {
+      display: none;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>나의 MOTI 분석 결과</h1>
-    <p id="loading" class="loading">결과를 불러오는 중입니다...</p>
-    <div id="result-content" style="display: none;">
-      <p>사장님의 MOTI 유형은</p>
-      <div id="moti-type" class="moti-type"></div>
-      <p>입니다!</p>
-    </div>
+  <div id="page-wrapper">
+    <!-- 사이트 헤더 (기존 네비 그대로 필요하면 복붙해서 쓰세요) -->
+    <section id="main" class="wrapper style1" style="padding-top: 4.5em;">
+      <div class="container container-narrow">
+
+        <!-- 헤더: 유형 배지 + 이름 + 요약 -->
+        <div class="card">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <div>
+              <div id="type-pill" class="pill">유형 로딩중...</div>
+              <h1 id="type-name" style="margin:.4rem 0 0; font-size:1.8rem;">—</h1>
+              <div id="type-tagline" class="muted">—</div>
+            </div>
+            <div class="right">
+              <button id="btn-generate" class="btn">솔루션 전략 생성</button>
+              <button id="btn-copy" class="btn secondary">복사</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 강점/단점 -->
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="section-title">강점</div>
+            <div class="divider"></div>
+            <ul id="strengths" style="margin:0; padding-left:1.1rem;"></ul>
+          </div>
+          <div class="card">
+            <div class="section-title">단점</div>
+            <div class="divider"></div>
+            <ul id="weaknesses" style="margin:0; padding-left:1.1rem;"></ul>
+          </div>
+        </div>
+
+        <!-- 솔루션 전략 (Gemini) -->
+        <div class="card">
+          <div class="section-title">상황 맞춤 솔루션 전략</div>
+          <div class="divider"></div>
+          <div id="ai-status" class="muted small">아직 생성 전입니다. 위의 <b>솔루션 전략 생성</b> 버튼을 눌러주세요.</div>
+          <div id="ai-output" class="codebox mono hide"></div>
+        </div>
+
+        <!-- 메타 -->
+        <div class="card small">
+          <div class="section-title">결과 정보</div>
+          <div class="divider"></div>
+          <div id="meta" class="muted">
+            UUID: <span id="meta-uuid">—</span> · 저장시각: <span id="meta-time">—</span><br />
+            스코어: <span id="meta-scores" class="mono">—</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
   </div>
 
+  <!-- Firebase SDK (v9 모듈) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    /***** ✅ 설정 섹션 *****/
+    // 1) 네가 쓰는 appId로 교체 (result 저장 경로와 동일해야 함)
+    const APP_ID = "survey-result"; // 예: "nsbo-app" 등
 
-    // Firebase 설정 정보
+    // 2) Firestore 프로젝트
     const firebaseConfig = {
       apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
       authDomain: "nbso-b7f41.firebaseapp.com",
       projectId: "nbso-b7f41",
-      storageBucket: "nbso-b7f41.firebasestorage.app",
+      storageBucket: "nbso-b7f41.appspot.com",
       messagingSenderId: "94203359555",
       appId: "1:94203359555:web:07f9ee21d1291670363ff6",
       measurementId: "G-YCWF8ENKC4"
     };
 
-    // Firebase 초기화
+    // 3) Gemini 호출 방식 선택
+    // 3-1) (클라이언트 직접) 아래 키를 window.GEMINI_API_KEY로 주입하면 사용됨 (보안상 권장 X)
+    // window.GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";
+
+    // 3-2) (권장) Cloud Function/서버 엔드포인트 사용
+    // window.GEMINI_ENDPOINT = "https://<cloud-function-url>/generateSolution";
+
+    /***** ✅ Firebase 초기화 *****/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged, signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // URL에서 UUID 파라미터 가져오기
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+    // 익명 로그인 확보
+    async function ensureAnon() {
+      const cur = auth.currentUser;
+      if (cur) return cur;
+      return new Promise((resolve, reject) => {
+        const unsub = onAuthStateChanged(auth, (u) => { if (u) { unsub(); resolve(u); } });
+        signInAnonymously(auth).catch(reject);
+      });
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const uuid = getQueryParam('uuid');
-      const loadingElement = document.getElementById('loading');
-      const resultContent = document.getElementById('result-content');
-      const motiTypeElement = document.getElementById('moti-type');
+    // UUID 가져오기 (쿼리 → 로컬스토리지 순)
+    function getUUID() {
+      const p = new URLSearchParams(location.search);
+      const u = p.get("uuid") || localStorage.getItem("surveyUUID");
+      return u || "";
+    }
 
-      if (uuid) {
-        try {
-          const docRef = doc(db, "survey_results", uuid);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const finalType = data.finalType;
-
-            // 로딩 메시지 숨기기
-            loadingElement.style.display = 'none';
-
-            // 결과 내용 표시
-            motiTypeElement.textContent = finalType;
-            resultContent.style.display = 'block';
-
-            console.log("✅ 설문 결과 불러오기 성공:", data);
-          } else {
-            loadingElement.textContent = '❌ 유효하지 않은 결과 링크입니다.';
-            console.error("❌ 설문 결과를 찾을 수 없습니다.");
-          }
-        } catch (e) {
-          loadingElement.textContent = '❌ 결과를 불러오는 중 오류가 발생했습니다.';
-          console.error("❌ Firestore 데이터 불러오기 오류:", e);
-        }
-      } else {
-        loadingElement.textContent = '❌ 결과 링크가 올바르지 않습니다.';
-        console.error("❌ URL에 UUID가 없습니다.");
+    // 결과 문서 가져오기 (users/{uid} 1순위 → 레거시 fallback)
+    async function fetchResult(uuid) {
+      const uid = auth.currentUser?.uid;
+      if (uid) {
+        const ref0 = doc(db, `users/${uid}/survey_results/${uuid}`);
+        const snap0 = await getDoc(ref0).catch(() => null);
+        if (snap0 && snap0.exists()) return { ref: ref0, snap: snap0, scope: "users" };
       }
+      const refA = doc(db, `artifacts/${APP_ID}/public/data/survey_results/${uuid}`);
+      const snapA = await getDoc(refA).catch(() => null);
+      if (snapA && snapA.exists()) return { ref: refA, snap: snapA, scope: "artifacts" };
+
+      const refB = doc(db, `survey_results/${uuid}`);
+      const snapB = await getDoc(refB).catch(() => null);
+      if (snapB && snapB.exists()) return { ref: refB, snap: snapB, scope: "top" };
+
+      throw new Error("결과 문서를 찾을 수 없습니다.");
+    }
+
+    // 유형 사전(16가지) — 필요시 문구 자유롭게 수정
+    const TYPE_MAP = (() => {
+      // 네 시스템 축: S/I, W/T, L/R, E/Q → 조합 16개
+      function t(key, name, tagline, strengths, weaknesses) {
+        return { key, name, tagline, strengths, weaknesses };
+      }
+      return {
+        SWLE: t("SWLE", "현장 영업형 스프린터", "빠른 실행과 현장 감각으로 즉시 매출을 만든다.",
+          ["의사결정이 빠름", "고객 대면/세일즈 강함", "현장 문제 해결 능력"],
+          ["장기 전략/브랜딩 소홀", "데이터 기반 의사결정 약함", "운영 표준화 미흡"]),
+        SWLQ: t("SWLQ", "현장 영업형 장인", "로컬 단골과 품질로 안정 매출을 만든다.",
+          ["고객 충성도 관리", "품질 안정화/리텐션", "현장 운영 노하우"],
+          ["확장/자동화 느림", "디지털 전환 저항", "마케팅 실험 적음"]),
+        SWRE: t("SWRE", "확장 영업형 스프린터", "영업 확장과 제휴로 빠른 외연 성장을 만든다.",
+          ["네트워킹/제휴에 강함", "신규 채널 개척", "속도감 있는 론치"],
+          ["CS/재방문 관리 약함", "내부 체계화 부족", "브랜드 일관성 저하"]),
+        SWRQ: t("SWRQ", "확장 영업형 장인", "브랜드 일관성을 지키며 안정적으로 확장한다.",
+          ["표준운영/매뉴얼화", "브랜드 관리", "재고/원가 관리"],
+          ["의사결정 느림", "신규 시도 보수적", "초기 매출 스파이크 약함"]),
+        STLE: t("STLE", "디지털 영업형 스프린터", "광고/콘텐츠로 빠르게 유입을 만든다.",
+          ["퍼포먼스 마케팅 이해", "콘텐츠 실험", "랜딩/전환 최적화"],
+          ["현장 운영 이해 부족", "LTV/CRM 약함", "기술 의존도"]),
+        STLQ: t("STLQ", "디지털 영업형 장인", "콘텐츠 품질과 전환 퍼널을 정교하게 다듬는다.",
+          ["브랜딩 콘텐츠", "퍼널 설계", "전환 데이터 해석"],
+          ["실험 속도 느림", "오프라인 실행 약함", "초기 유입 속도 낮음"]),
+        STRE: t("STRE", "그로스 해커", "데이터로 빠르게 실험하고 확장한다.",
+          ["지표 기반 의사결정", "A/B 테스트", "옴니채널 확장"],
+          ["현장 운영/품질 간극", "단기 지표 집착 리스크", "내부 피로도"]),
+        STRQ: t("STRQ", "브랜드 빌더", "브랜드 자산으로 고마진 구조를 만든다.",
+          ["브랜드 일관성", "고객경험 설계", "프리미엄 가격"],
+          ["민첩성 부족", "초기 캐시플로 약함", "테스트 비용 큼"]),
+        IWLE: t("IWLE", "현장 분석형 스프린터", "현장 데이터를 근거로 빠르게 고친다.",
+          ["문제 분석/개선", "원가/공정 최적화", "작은 실험 반복"],
+          ["세일즈 드라이브 약함", "마케팅 노출 부족", "확장성 한계"]),
+        IWLQ: t("IWLQ", "현장 분석형 장인", "품질관리와 운영 안정성으로 신뢰를 만든다.",
+          ["표준/매뉴얼", "품질 지표 관리", "리스크 통제"],
+          ["속도/유연성 낮음", "신제품/채널 확장 느림", "광고 이해 약함"]),
+        IWRE: t("IWRE", "확장 분석형 스프린터", "데이터로 외연 확장을 타이밍 좋게 건다.",
+          ["멀티지점 실험", "지역/채널 포트폴리오", "수요 예측"],
+          ["브랜드/경험 일관성", "조직 커뮤니케이션 부담", "초기 비용"]),
+        IWRQ: t("IWRQ", "확장 분석형 장인", "체계적 확장으로 리스크를 최소화한다.",
+          ["본사-지점 표준", "KPI 기반 운영", "공급망/원가"],
+          ["의사결정 지연", "현장 민첩성 저하", "마케팅 드라이브 부족"]),
+        ITLE: t("ITLE", "로컬 디지털 실험가", "동네 기반 디지털 실험으로 효율을 찾는다.",
+          ["지역 타겟팅", "로컬 커뮤니티", "소규모 반복 실험"],
+          ["규모의 경제 약함", "브랜드 확장성 낮음", "데이터 인프라 미흡"]),
+        ITLQ: t("ITLQ", "로컬 디지털 설계가", "로컬 퍼널과 고객경험을 정교하게 설계한다.",
+          ["퍼널/CRM", "멤버십/리텐션", "리뷰/UGC"],
+          ["확장 속도 느림", "세일즈 드라이브 약함", "초기 유입 약함"]),
+        ITRE: t("ITRE", "스케일업 프로토타이퍼", "프로토타입을 빠르게 돌려 스케일 모델을 찾는다.",
+          ["MVP/테스트", "자동화 도입", "단가/마진 구조 탐색"],
+          ["운영 디테일 구멍", "브랜드 일관성", "고객 케어 약함"]),
+        ITRQ: t("ITRQ", "스케일업 아키텍트", "시스템으로 확장 가능한 구조를 만든다.",
+          ["프로세스/시스템", "데이터 거버넌스", "인력/역할 설계"],
+          ["초기 속도 느림", "비용/시간 투자 큼", "실험 민첩성 저하"])
+      };
+    })();
+
+    function computeTypeFromScores(scores) {
+      // scores는 {S,I,W,T,L,R,E,Q} 형태 가정
+      if (!scores) return null;
+      const s1 = (scores.S ?? 0) >= (scores.I ?? 0) ? "S" : "I";
+      const s2 = (scores.W ?? 0) >= (scores.T ?? 0) ? "W" : "T";
+      const s3 = (scores.L ?? 0) >= (scores.R ?? 0) ? "L" : "R";
+      const s4 = (scores.E ?? 0) >= (scores.Q ?? 0) ? "E" : "Q";
+      return s1 + s2 + s3 + s4;
+    }
+
+    function renderTypeCard(typeKey) {
+      const d = TYPE_MAP[typeKey] || null;
+      const $pill = document.getElementById("type-pill");
+      const $name = document.getElementById("type-name");
+      const $tag = document.getElementById("type-tagline");
+      const $str = document.getElementById("strengths");
+      const $weak = document.getElementById("weaknesses");
+
+      if (!d) {
+        $pill.textContent = "유형 미확정";
+        $name.textContent = "—";
+        $tag.textContent = "스코어가 충분하지 않거나 매핑이 없습니다.";
+        return;
+      }
+      $pill.textContent = d.key;
+      $name.textContent = d.name;
+      $tag.textContent = d.tagline;
+
+      $str.innerHTML = ""; d.strengths.forEach(x => { const li = document.createElement("li"); li.textContent = x; $str.appendChild(li); });
+      $weak.innerHTML = ""; d.weaknesses.forEach(x => { const li = document.createElement("li"); li.textContent = x; $weak.appendChild(li); });
+    }
+
+    function showAI(text) {
+      const out = document.getElementById("ai-output");
+      const st = document.getElementById("ai-status");
+      out.textContent = text;
+      out.classList.remove("hide");
+      st.textContent = "생성이 완료되었습니다.";
+    }
+
+    function setLoading(flag) {
+      const btn = document.getElementById("btn-generate");
+      const st = document.getElementById("ai-status");
+      btn.disabled = flag;
+      st.textContent = flag ? "Gemini가 솔루션을 생성 중입니다..." : "준비 완료.";
+    }
+
+    function buildPrompt(docData, typeKey, typeInfo) {
+      const safe = (v) => (typeof v === "string" ? v : JSON.stringify(v || {}));
+      const lines = [];
+      lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
+      lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
+      lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
+      lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
+      lines.push("아래 설문 요약을 바탕으로, 지금 당장 실천할 7일 액션과 30/90일 계획, 예상 리스크를 JSON으로 답하세요.");
+      lines.push("JSON 키: {\"quick_wins\":[], \"plan_30d\":[], \"plan_90d\":[], \"risks\":[], \"kpis\":[]}");
+      lines.push("각 항목은 3~6개, 한 항목당 1문장, 너무 장황하지 않게.");
+      lines.push("");
+      lines.push("=== 설문 요약 ===");
+      lines.push(`공통정보: ${safe(docData?.common)}`);
+      lines.push(`스코어: ${safe(docData?.scores)}`);
+      lines.push(`핵심 이슈: ${safe(docData?.issues) || "미입력"}`);
+      lines.push(`기타 메모: ${safe(docData?.notes) || "없음"}`);
+      return lines.join("\n");
+    }
+
+    async function callGemini(prompt) {
+      // 1) 우선 서버 엔드포인트가 있으면 거기로
+      if (window.GEMINI_ENDPOINT) {
+        const r = await fetch(window.GEMINI_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+        if (!r.ok) throw new Error("서버 응답 실패");
+        return await r.text();
+      }
+
+      // 2) (선택) 클라이언트 직접 호출 — 보안상 키 노출 유의
+      if (window.GEMINI_API_KEY) {
+        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(window.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+      }
+
+      throw new Error("Gemini 호출 설정이 없습니다. (GEMINI_ENDPOINT 또는 GEMINI_API_KEY)");
+    }
+
+    // 복사
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      const t = document.getElementById("ai-output").textContent.trim();
+      if (!t) { alert("복사할 내용이 없습니다."); return; }
+      navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
     });
+
+    // 메인 플로우
+    const uuid = getUUID();
+    document.getElementById("meta-uuid").textContent = uuid || "—";
+
+    try {
+      await ensureAnon();
+      if (!uuid) throw new Error("uuid 파라미터가 없습니다.");
+
+      const { ref, snap } = await fetchResult(uuid);
+      const data = snap.data() || {};
+      // 권한/소유자 표시
+      const ts = data.timestamp?.toDate?.() || data.createdAt?.toDate?.() || null;
+      document.getElementById("meta-time").textContent = ts ? ts.toLocaleString() : "—";
+
+      // 유형 결정: 문서에 finalType 있으면 우선, 없으면 scores로 계산
+      const scores = data.scores || data.score || null;
+      document.getElementById("meta-scores").textContent = scores ? JSON.stringify(scores) : "—";
+      const typeKey = (data.finalType || computeTypeFromScores(scores) || "SWLE").toUpperCase();
+      renderTypeCard(typeKey);
+
+      // 솔루션 생성
+      document.getElementById("btn-generate").addEventListener("click", async () => {
+        try {
+          setLoading(true);
+          const info = TYPE_MAP[typeKey];
+          const prompt = buildPrompt(data, typeKey, info);
+          const raw = await callGemini(prompt);
+
+          // JSON 파싱 시도 (코드블록/문장 혼합도 대응)
+          let jsonText = raw;
+          const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+          if (m) jsonText = m[1];
+          // 안전 파싱
+          let parsed = null;
+          try { parsed = JSON.parse(jsonText); } catch { }
+          const pretty = parsed ? JSON.stringify(parsed, null, 2) : raw;
+          showAI(pretty);
+
+          // 내 문서면 Firestore에 저장
+          const me = auth.currentUser?.uid || "";
+          if (data.ownerUid && me && data.ownerUid === me) {
+            await setDoc(ref, { aiSolution: parsed || { raw }, aiGeneratedAt: serverTimestamp() }, { merge: true });
+          }
+        } catch (err) {
+          document.getElementById("ai-status").textContent = "생성 실패: " + (err?.message || err);
+        } finally {
+          setLoading(false);
+        }
+      });
+
+    } catch (e) {
+      // 에러 화면
+      document.getElementById("type-pill").textContent = "오류";
+      document.getElementById("type-name").textContent = "결과를 불러오지 못했습니다";
+      document.getElementById("type-tagline").textContent = e?.message || String(e);
+      document.getElementById("btn-generate").disabled = true;
+    }
+
+    // 디버그 훅(원하면 주석 해제)
+    // window.db=db;
   </script>
 </body>
 

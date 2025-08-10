@@ -357,6 +357,9 @@
 
         // 1) 먼저 Firebase 익명 로그인 확보
         await ensureAnonAuth(auth);
+        // ✅ 여기! 로그인 완료 직후라 UID가 보장됨
+        const firebaseUid = auth.currentUser.uid;
+
 
         // 2) 로그인 확보 후 카카오 사용자 정보 요청 및 Firestore 저장
         Kakao.API.request({
@@ -377,7 +380,25 @@
                 // ✅ users/{kakaoId}에 upsert
 
                 try {
-                    await setDoc(doc(db, "users", userInfo.uid), userInfo, { merge: true });
+                    await setDoc(doc(db, "users", firebaseUid),
+                        { uid: firebaseUid, kakaoId: userInfo.uid, ...userInfo },
+                        { merge: true });
+
+                    await setDoc(
+                        doc(db, `users/${firebaseUid}/private/kakao`),
+                        {
+                            kakaoId: userInfo.uid,
+                            email: userInfo.email,
+                            nickname: userInfo.nickname,
+                            gender: userInfo.gender,
+                            age_range: userInfo.age_range,
+                            birthday: userInfo.birthday,
+                            phone_number: userInfo.phone_number,
+                            profile_image: userInfo.profile_image,
+                            connectedAt: serverTimestamp()
+                        },
+                        { merge: true }
+                    );
                     console.log("✅ 사용자 정보 저장 완료");
                 } catch (e) {
                     console.error("❌ users 저장 실패:", e);
@@ -389,7 +410,7 @@
                     const surveyUUID = localStorage.getItem("surveyUUID");
                     if (surveyUUID) {
                         try {
-                            const surveyRef = doc(db, "survey_results", surveyUUID);
+                            const surveyRef = doc(db, `users/${firebaseUid}/survey_results/${surveyUUID}`);
                             await updateDoc(surveyRef, {
                                 kakaoUid: userInfo.uid,
                                 kakaoEmail: userInfo.email,

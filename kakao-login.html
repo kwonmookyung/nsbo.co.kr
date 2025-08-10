@@ -336,7 +336,7 @@
                         success: function (response) {
                             console.log("✅ 사용자 정보 가져오기 성공:", response);
 
-                            const userId = response.id.toString();
+                            const kakaoId = response.id.toString();
                             const userTimestamp = firebase.firestore.Timestamp.now();
 
                             const userData = {
@@ -350,19 +350,22 @@
                                 last_login_timestamp: firebase.firestore.Timestamp.now()
                             };
 
-                            const docRef = db.collection("users").doc(userId);
+                            const firebaseUid = auth.currentUser.uid;
+                            const docRef = db.collection("users").doc(firebaseUid);
 
                             // ✅ 2. Firestore 저장 또는 업데이트
                             docRef.get().then(docSnap => {
                                 if (docSnap.exists) {
                                     console.log("✅ 기존 사용자 - 정보 업데이트");
-                                    return docRef.update(userData);
+                                    return docRef.update({ ...userData, kakaoId });
                                 } else {
                                     console.log("✅ 신규 사용자 - 정보 저장");
                                     return docRef.set({
+                                        uid: firebaseUid,
+                                        kakaoId,
                                         ...userData,
                                         created_timestamp: userTimestamp
-                                    });
+                                    }, { merge: true });
                                 }
                             }).then(() => {
                                 console.log("✅ Firestore 저장 완료");
