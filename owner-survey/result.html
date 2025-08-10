@@ -380,8 +380,17 @@
     }
 
     // 시작
+
     window.addEventListener('load', () => {
-      document.getElementById('status').textContent = 'Firebase 준비 중...';
+      // #status가 없으면 눈에 안 보이는 상태로 하나 만들기 (UI 영향 없음)
+      let st = document.getElementById('status');
+      if (!st) {
+        st = document.createElement('div');
+        st.id = 'status';
+        st.style.display = 'none';    // 화면에 표시되지 않음
+        document.body.appendChild(st);
+      }
+      st.textContent = 'Firebase 준비 중...';
       setupFirebase();
     });
   </script>
