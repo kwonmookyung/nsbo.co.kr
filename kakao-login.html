@@ -315,6 +315,11 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth(); // Firebase Auth 객체 초기화
+        // ⬇️⬇️⬇️ 여기에 추가!
+        auth.signInAnonymously()
+            .then(() => console.log("✅ Firebase 익명 로그인 완료"))
+            .catch(err => console.error("❌ 익명 로그인 실패:", err));
+        // ⬆️⬆️⬆️
 
         // ✅ 카카오 SDK 초기화
         Kakao.init("cc58d703cacde86ff1976fd723a04854"); // 실제 앱 키 사용
@@ -335,14 +340,14 @@
                             const userTimestamp = firebase.firestore.Timestamp.now();
 
                             const userData = {
-                                nickname: response.properties?.nickname || "",
-                                email: response.kakao_account?.email || "",
-                                gender: response.kakao_account?.gender || "",
-                                age_range: response.kakao_account?.age_range || "",
-                                birthday: response.kakao_account?.birthday || "",
-                                phone_number: response.kakao_account?.phone_number || "",
-                                profile_image: response.properties?.profile_image || "",
-                                last_login_timestamp: userTimestamp
+                                nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
+                                email: response.kakao_account?.email ?? "",
+                                gender: response.kakao_account?.gender ?? "",
+                                age_range: response.kakao_account?.age_range ?? "",
+                                birthday: response.kakao_account?.birthday ?? "",
+                                phone_number: response.kakao_account?.phone_number ?? "",
+                                profile_image: response.kakao_account?.profile?.profile_image_url ?? response.properties?.profile_image ?? "",
+                                last_login_timestamp: firebase.firestore.Timestamp.now()
                             };
 
                             const docRef = db.collection("users").doc(userId);
