@@ -307,7 +307,7 @@
             apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
             authDomain: "nbso-b7f41.firebaseapp.com",
             projectId: "nbso-b7f41",
-            storageBucket: "nbso-b7f41.firebasestorage.app",
+            storageBucket: "nbso-b7f41.appspot.com",
             messagingSenderId: "94203359555",
             appId: "1:94203359555:web:07f9ee21d1291670363ff6",
             measurementId: "G-YCWF8ENKC4"
@@ -357,7 +357,7 @@
                             docRef.get().then(docSnap => {
                                 if (docSnap.exists) {
                                     console.log("✅ 기존 사용자 - 정보 업데이트");
-                                    return docRef.update({ ...userData, kakaoId });
+                                    return docRef.update({ uid: firebaseUid, ...userData, kakaoId });
                                 } else {
                                     console.log("✅ 신규 사용자 - 정보 저장");
                                     return docRef.set({
