@@ -365,6 +365,7 @@
         Kakao.API.request({
             url: "/v2/user/me",
             success: async function (response) {
+                const kakaoId = response.id?.toString() ?? "";
                 const userInfo = {
                     uid: response.id?.toString() ?? "",
                     nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
@@ -380,14 +381,16 @@
                 // ✅ users/{kakaoId}에 upsert
 
                 try {
-                    await setDoc(doc(db, "users", firebaseUid),
-                        { uid: firebaseUid, kakaoId: userInfo.uid, ...userInfo },
-                        { merge: true });
+                    await setDoc(
+                        doc(db, "users", firebaseUid),
+                        { ...userInfo, uid: firebaseUid, kakaoId },   // ← userInfo 먼저, 그다음 uid 덮어쓰기
+                        { merge: true }
+                    );
 
                     await setDoc(
                         doc(db, `users/${firebaseUid}/private/kakao`),
                         {
-                            kakaoId: userInfo.uid,
+                            kakaoId,
                             email: userInfo.email,
                             nickname: userInfo.nickname,
                             gender: userInfo.gender,
@@ -412,7 +415,7 @@
                         try {
                             const surveyRef = doc(db, `users/${firebaseUid}/survey_results/${surveyUUID}`);
                             await updateDoc(surveyRef, {
-                                kakaoUid: userInfo.uid,
+                                kakaoUid: kakaoId,
                                 kakaoEmail: userInfo.email,
                                 kakaoNickname: userInfo.nickname,
                                 connectedAt: serverTimestamp()
