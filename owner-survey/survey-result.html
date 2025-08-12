@@ -161,11 +161,30 @@
         </div>
 
         <!-- 솔루션 전략 (Gemini) -->
-        <div class="card">
+        <div class="card" id="ai-card">
           <div class="section-title">상황 맞춤 솔루션 전략</div>
           <div class="divider"></div>
-          <div id="ai-status" class="muted small">아직 생성 전입니다. 위의 <b>솔루션 전략 생성</b> 버튼을 눌러주세요.</div>
-          <div id="ai-output" class="codebox mono hide"></div>
+          <div class="muted small">버튼을 누르면 축별로 순서대로 생성합니다. (S/I → W/T → L/R → Q/E)</div>
+
+          <div style="margin-top:.6rem">
+            <div class="muted small" id="st-si">S vs I · 생성 대기중</div>
+            <div id="out-si" class="codebox mono hide"></div>
+          </div>
+
+          <div style="margin-top:1rem">
+            <div class="muted small" id="st-wt">W vs T · 생성 대기중</div>
+            <div id="out-wt" class="codebox mono hide"></div>
+          </div>
+
+          <div style="margin-top:1rem">
+            <div class="muted small" id="st-lr">L vs R · 생성 대기중</div>
+            <div id="out-lr" class="codebox mono hide"></div>
+          </div>
+
+          <div style="margin-top:1rem">
+            <div class="muted small" id="st-qe">Q vs E · 생성 대기중</div>
+            <div id="out-qe" class="codebox mono hide"></div>
+          </div>
         </div>
 
         <!-- 메타 -->
@@ -342,31 +361,77 @@
       btn.disabled = flag;
       st.textContent = flag ? "Gemini가 솔루션을 생성 중입니다..." : "준비 완료.";
     }
+    // === 축/사이드 계산 ===
+    function getAxisSides(typeKey = "") {
+      const t = String(typeKey || "").toUpperCase();
+      return {
+        SI: (t[0] === "S" ? "S" : "I"),
+        WT: (t[1] === "W" ? "W" : "T"),
+        LR: (t[2] === "L" ? "L" : "R"),
+        QE: (t[3] === "Q" ? "Q" : "E"), // 주의: 기존 computeTypeFromScores는 E/Q 비교였지만, 코드 정의가 Q/E라면 여길 유지
+      };
+    }
 
-    function buildPrompt(docData, typeKey, typeInfo) {
+    // === 축별 프롬프트 빌더 ===
+    function buildAxisPrompt(axisKey, side, docData, typeKey, typeInfo) {
       const p = extractProfileFromResponses(docData?.responses);
+      const axisLabel = {
+        SI: "S vs I (운영자 성향)",
+        WT: "W vs T (신규 유입 vs 단골 유지)",
+        LR: "L vs R (논리형 vs 감각형 운영)",
+        QE: "Q vs E (조직형 vs 감정형 응대)"
+      }[axisKey] || axisKey;
 
       const lines = [];
       lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
       lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
-      lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
-      lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
-
-      // ✅ 요청하신 4가지 핵심 정보 명시
+      lines.push(`축: ${axisLabel} · 사용자의 측면: ${side}`);
+      lines.push("");
       lines.push("=== 사용자 핵심 정보(설문) ===");
       lines.push(`업종: ${p.industry}`);
       lines.push(`하루 평균 매출: ${p.avg_daily_sales}`);
       lines.push(`지역: ${p.region}`);
       lines.push(`운영 기간: ${p.operating_period}`);
-
-      // ✅ 출력 규칙 및 플랫폼 일반 용어 사용 가이드
-      lines.push("위 사용자 정보 4가지를 반드시 반영하여, 실천 가능한 계획을 제시하세요.");
-      lines.push("플랫폼/채널 실명은 사용하지 말고 '마케팅', '배달앱', 'SNS', '지도/검색', '동네 커뮤니티' 같은 일반 용어로만 쓰세요.");
-      lines.push('JSON으로만 답하세요. 키는 {"quick_wins":[], "plan_30d":[], "plan_90d":[], "risks":[], "kpis":[]} 입니다.');
-      lines.push("각 배열은 3~6개 항목, 한 항목당 1문장, 과장은 피하고 간결하게 작성하세요.");
-
+      lines.push("");
+      lines.push("요구사항:");
+      lines.push("- 아래 JSON 형식으로만 간결하게 답하세요.");
+      lines.push('- {"summary":"한 문장 요약", "evidence":["근거 2~4개(연구/통계 요지, 출처명만; 임의 생성 금지; 모르면 \'출처 미확정\')"], "recommendations":["실천 전략 4~6개"], "metrics":["필수 지표 3~5개"], "notes":["주의/한계 2~3개"]}');
+      lines.push("- 플랫폼/채널의 실명은 쓰지 말고 '마케팅', '배달앱', 'SNS', '지도/검색', '동네 커뮤니티' 같은 일반 용어만 사용하세요.");
+      lines.push("- 과학적/통계적 근거는 주장 대신 검증 가능한 형태로 요약하세요(수치 범위·경향·보고서 이름 등).");
       return lines.join("\n");
-    } // ← 이 중괄호가 꼭 필요합니다!
+    }
+
+    // === 축별 출력 도우미 ===
+    function setAxisStatus(axisKey, text) {
+      const id = { SI: "st-si", WT: "st-wt", LR: "st-lr", QE: "st-qe" }[axisKey];
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+    function showAxisOutput(axisKey, text) {
+      const id = { SI: "out-si", WT: "out-wt", LR: "out-lr", QE: "out-qe" }[axisKey];
+      if (!id) return;
+      const out = document.getElementById(id);
+      if (out) { out.textContent = text; out.classList.remove("hide"); }
+    }
+    // JSON 파싱(관대하게)
+    function safeParseJSON(raw) {
+      if (!raw) return { ok: false, data: null, jsonText: "" };
+      const pick = (s) => {
+        // ```json ... ``` 또는 { ... } 블록 추출 시도
+        const code = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (code) return code[1];
+        const obj = s.match(/\{[\s\S]*\}$/m);
+        return obj ? obj[0] : s;
+      };
+      const cand = pick(raw);
+      try {
+        const data = JSON.parse(cand);
+        return { ok: true, data, jsonText: JSON.stringify(data, null, 2) };
+      } catch {
+        return { ok: false, data: null, jsonText: raw };
+      }
+    }
 
     async function callGemini(prompt) {
       if (window.GEMINI_ENDPOINT) {
@@ -388,10 +453,48 @@
       throw new Error("Gemini 호출 설정이 없습니다. (GEMINI_ENDPOINT 또는 GEMINI_API_KEY)");
     }
 
-    document.getElementById("btn-copy").addEventListener("click", () => {
-      const t = document.getElementById("ai-output").textContent.trim();
-      if (!t) { alert("복사할 내용이 없습니다."); return; }
-      navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
+    document.getElementById("btn-generate").addEventListener("click", async () => {
+      const btn = document.getElementById("btn-generate");
+      btn.disabled = true;
+
+      try {
+        const sides = getAxisSides(typeKey);
+        const axes = ["SI", "WT", "LR", "QE"];
+        const results = {};
+
+        for (const axis of axes) {
+          setAxisStatus(axis, `${axis} · 생성 중...`);
+          const prompt = buildAxisPrompt(axis, sides[axis], data, typeKey, TYPE_INFO);
+          const raw = await callGemini(prompt);
+
+          // 파싱(전용 파서가 아니라 관대한 파서 사용)
+          const parsed = safeParseJSON(raw);
+          const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
+
+          results[axis] = parsed.ok ? parsed.data : { raw };
+          showAxisOutput(axis, pretty);
+          setAxisStatus(axis, `${axis} · 생성 완료`);
+        }
+
+        // Firestore 저장(문서 소유자일 때만)
+        const me = auth.currentUser?.uid || "";
+        if (data.ownerUid && me && data.ownerUid === me) {
+          await setDoc(ref, {
+            aiAxisSolutions: results,
+            aiAxisGeneratedAt: serverTimestamp()
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error(err);
+        // 축 상태들에 에러를 표시
+        ["SI", "WT", "LR", "QE"].forEach(ax => setAxisStatus(ax, `${ax} · 생성 실패`));
+        document.getElementById("ai-card").insertAdjacentHTML(
+          "beforeend",
+          `<div class="muted small" style="margin-top:.8rem;color:#c00">오류: ${err?.message || err}</div>`
+        );
+      } finally {
+        btn.disabled = false;
+      }
     });
 
     /** 메인 */
