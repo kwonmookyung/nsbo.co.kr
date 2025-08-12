@@ -14,22 +14,52 @@
     }
 
     .cta-box {
-      background: #f7fafc;
-      border: 1px solid #e6eef5;
-      border-radius: 12px;
-      padding: 1rem;
-      margin-top: .8rem;
+      background: linear-gradient(135deg, #fff7e6, #fffef6);
+      border: 1px solid #ffd697;
+      border-left: 6px solid #ff9f1c;
+      border-radius: 16px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .10);
+      padding: 1rem 1rem 1.1rem;
+      margin-top: .9rem;
+
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .8rem;
-      flex-wrap: wrap;
+      flex-direction: column;
+      /* ⬅︎ 세로 배치 */
+      align-items: flex-start;
+      /* ⬅︎ 왼쪽 정렬 */
+      gap: .9rem;
     }
 
     .cta-box p {
       margin: 0;
-      color: #333;
-      font-size: .95rem;
+      color: #2b2b2b;
+      line-height: 1.7;
+      font-size: .98rem;
+    }
+
+    /* CTA 버튼: 눈에 띄는 색상 + 모바일 풀폭 */
+    .cta-box .btn {
+      background: #ff9f1c;
+      border-color: #ff9f1c;
+      color: #111;
+      font-weight: 800;
+      padding: .9rem 1.2rem;
+      border-radius: 10px;
+      width: 100%;
+      /* ⬅︎ 모바일 풀폭 */
+      text-align: center;
+    }
+
+    .cta-box .btn:hover {
+      filter: brightness(.96);
+    }
+
+    /* 데스크탑에서 버튼은 적당한 폭으로 */
+    @media (min-width: 900px) {
+      .cta-box .btn {
+        width: auto;
+        min-width: 220px;
+      }
     }
 
     .card {
