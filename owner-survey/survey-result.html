@@ -270,7 +270,14 @@
         const hit = rows.find(r => preds.some(p => p((r?.question || "").trim())));
         return (hit?.answer ?? "미입력") || "미입력";
       };
-
+      function setStatus(text) {
+        const el = document.getElementById("ai-status");
+        if (el) el.textContent = text;
+      }
+      function showOutput(text) {
+        const out = document.getElementById("ai-output");
+        if (out) { out.textContent = text; out.classList.remove("hide"); }
+      }
       return {
         industry: find([
           q => q === "당신의 업종은 무엇인가요?",
@@ -328,48 +335,54 @@
         QE: (t[3] === "Q" ? "Q" : "E"),
       };
     }
-
-    // === 축별 프롬프트 빌더 ===
-    function buildAxisPrompt(axisKey, side, docData, typeKey, typeInfo) {
+    const AXIS_TEXT = {
+      S: "매장 운영 효율 중심, 수치 기반 판단",
+      I: "매장 인력·관계 중심, 감정과 분위기 중시",
+      W: "신규 유입 선호(마케팅·SNS·이벤트 등)",
+      T: "단골 유지·입소문·신뢰 중심 운영",
+      L: "감정 억제, 매뉴얼·표준 절차 기반 응대",
+      R: "친화적, 감정 교류 중심 응대",
+      Q: "수치·분석·전략 중심 운영",
+      E: "감각·즉흥·현장 감각 중시 운영"
+    };
+    function buildFreePrompt(docData, typeKey, typeInfo) {
       const p = extractProfileFromResponses(docData?.responses);
-      const axisLabel = {
-        SI: "S vs I (매장 운영 효율 중심,수치 기반 판단 vs 매장 인력 관계 중심, 감정과 분위기 중시)",
-        WT: "W vs T (신규 유입(마케팅,SNS,이벤트 유입 선호) vs 단골 유지(단골,입소문,신뢰중심 운영))",
-        LR: "L vs R (감정 억제, 메뉴얼 기반 응대 vs 친화적, 감정 교류 중심 대응)",
-        QE: "Q vs E (수치,분석,전략 운영 vs 감각,즉흥,현실 감각 중시 운영)"
-      }[axisKey] || axisKey;
+      const sides = getAxisSides(typeKey); // 예: {SI:"S", WT:"W", LR:"L", QE:"Q"}
 
       const lines = [];
       lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
       lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
-      lines.push(`축: ${axisLabel} · 사용자의 측면: ${side}`);
+      lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
+      lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
       lines.push("");
+
+      // ✅ 유형 축 설명(레전드) + 사용자의 측면 표시
+      lines.push("=== 유형 축 설명 ===");
+      lines.push(`S vs I: S=${AXIS_TEXT.S} / I=${AXIS_TEXT.I} · 사용자의 측면=${sides.SI}`);
+      lines.push(`W vs T: W=${AXIS_TEXT.W} / T=${AXIS_TEXT.T} · 사용자의 측면=${sides.WT}`);
+      lines.push(`L vs R: L=${AXIS_TEXT.L} / R=${AXIS_TEXT.R} · 사용자의 측면=${sides.LR}`);
+      lines.push(`Q vs E: Q=${AXIS_TEXT.Q} / E=${AXIS_TEXT.E} · 사용자의 측면=${sides.QE}`);
+      lines.push("");
+
+      // ✅ 사용자 핵심 정보
       lines.push("=== 사용자 핵심 정보(설문) ===");
       lines.push(`업종: ${p.industry}`);
       lines.push(`하루 평균 매출: ${p.avg_daily_sales}`);
       lines.push(`지역: ${p.region}`);
       lines.push(`운영 기간: ${p.operating_period}`);
       lines.push("");
-      lines.push("요구사항:");
-      lines.push("- 아래 형식으로 대답해주세요.");
-      lines.push("- 어떤 솔루션인지? 해당 솔루션이 과학적 근거/통계적 기반으로 얼마나 매출 상승을 기대할수있는지?(대략적인 예상,정확하지않아도됨)");
-      lines.push("- 인사말 하지말고, 가장 추천하는 전략 한가지만 정해서 줘.");
-      lines.push("- 너무 어려운용어는 사용하지 말고, 어떤 방식으로 하면 어떤 근거에 의거하여 매출 상승효과를 몇% 기대할수 있다. 이런 식으로 10줄 안에 간략하게 써줘.");
-      return lines.join("\n");
-    }
 
-    // === 축별 출력 도우미 ===
-    function setAxisStatus(axisKey, text) {
-      const id = { SI: "st-si", WT: "st-wt", LR: "st-lr", QE: "st-qe" }[axisKey];
-      if (!id) return;
-      const el = document.getElementById(id);
-      if (el) el.textContent = text;
-    }
-    function showAxisOutput(axisKey, text) {
-      const id = { SI: "out-si", WT: "out-wt", LR: "out-lr", QE: "out-qe" }[axisKey];
-      if (!id) return;
-      const out = document.getElementById(id);
-      if (out) { out.textContent = text; out.classList.remove("hide"); }
+      // ✅ 응답 형식 안내 (단일 박스, 자유 형식)
+      lines.push("요구사항:");
+      lines.push("- 인사말 없이 바로 본론으로, 가장 추천하는 핵심 전략 '한 가지'만 제시하세요.");
+      lines.push("- 어떤 방식으로 실행하면, 어떤 근거(연구/통계 요지, 출처명 수준)에 따라, 매출을 대략 몇 % 기대할 수 있는지까지 8~10문장 이내로 간결히.");
+      lines.push("- 출처가 불확실하면 '출처 미확정'이라고 명시하세요.");
+      lines.push("- 특정 플랫폼 실명은 쓰지 말고 '마케팅', '배달앱', 'SNS', '지도/검색', '동네 커뮤니티' 같은 일반 용어만 사용하세요.");
+      lines.push("");
+      lines.push("가능하면 JSON으로도 함께 제공해 주세요(권장 형식):");
+      lines.push('{"summary":"한 문장 요약","recommendation":"핵심 전략 1개(한 문장)","evidence":["근거 2~3개(출처명 수준; 없으면 \'출처 미확정\')"],"expected_uplift":"대략적 % 또는 범위","steps":["실행 단계 3~5개"],"metrics":["필수 지표 2~4개"]}');
+
+      return lines.join("\n");
     }
     // JSON 파싱(관대하게)
     function safeParseJSON(raw) {
