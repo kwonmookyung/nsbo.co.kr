@@ -164,27 +164,8 @@
         <div class="card" id="ai-card">
           <div class="section-title">상황 맞춤 솔루션 전략</div>
           <div class="divider"></div>
-          <div class="muted small">버튼을 누르면 축별로 순서대로 생성합니다. (S/I → W/T → L/R → Q/E)</div>
-
-          <div style="margin-top:.6rem">
-            <div class="muted small" id="st-si">S vs I · 생성 대기중</div>
-            <div id="out-si" class="codebox mono hide"></div>
-          </div>
-
-          <div style="margin-top:1rem">
-            <div class="muted small" id="st-wt">W vs T · 생성 대기중</div>
-            <div id="out-wt" class="codebox mono hide"></div>
-          </div>
-
-          <div style="margin-top:1rem">
-            <div class="muted small" id="st-lr">L vs R · 생성 대기중</div>
-            <div id="out-lr" class="codebox mono hide"></div>
-          </div>
-
-          <div style="margin-top:1rem">
-            <div class="muted small" id="st-qe">Q vs E · 생성 대기중</div>
-            <div id="out-qe" class="codebox mono hide"></div>
-          </div>
+          <div id="ai-status" class="muted small">아직 생성 전입니다. 위의 <b>솔루션 전략 생성</b> 버튼을 눌러주세요.</div>
+          <div id="ai-output" class="codebox mono hide"></div>
         </div>
 
         <!-- 메타 -->
@@ -344,7 +325,7 @@
         SI: (t[0] === "S" ? "S" : "I"),
         WT: (t[1] === "W" ? "W" : "T"),
         LR: (t[2] === "L" ? "L" : "R"),
-        QE: (t[3] === "Q" ? "Q" : "E"), 
+        QE: (t[3] === "Q" ? "Q" : "E"),
       };
     }
 
@@ -433,24 +414,9 @@
     const uuid = getUUID();
     document.getElementById("meta-uuid").textContent = uuid || "—";
     document.getElementById("btn-copy").addEventListener("click", () => {
-      const pick = id => document.getElementById(id)?.textContent?.trim();
-      const raw = {
-        SI: pick("out-si"),
-        WT: pick("out-wt"),
-        LR: pick("out-lr"),
-        QE: pick("out-qe"),
-      };
-      // 가능하면 JSON으로 파싱해 합치고, 아니면 문자열 그대로 담습니다.
-      const tryParse = s => { try { return JSON.parse(s); } catch { return s || ""; } };
-      const merged = {
-        SI: raw.SI ? tryParse(raw.SI) : "",
-        WT: raw.WT ? tryParse(raw.WT) : "",
-        LR: raw.LR ? tryParse(raw.LR) : "",
-        QE: raw.QE ? tryParse(raw.QE) : ""
-      };
-      const text = JSON.stringify(merged, null, 2);
-      if (text === '{"SI":"","WT":"","LR":"","QE":""}') { alert("복사할 내용이 없습니다."); return; }
-      navigator.clipboard.writeText(text).then(() => alert("복사 완료"));
+      const t = document.getElementById("ai-output")?.textContent?.trim();
+      if (!t) { alert("복사할 내용이 없습니다."); return; }
+      navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
     });
     try {
       await ensureAnon();
@@ -488,42 +454,28 @@
       document.getElementById("btn-generate").addEventListener("click", async () => {
         const btn = document.getElementById("btn-generate");
         btn.disabled = true;
-
         try {
-          const sides = getAxisSides(typeKey);
-          const axes = ["SI", "WT", "LR", "QE"];
-          const results = {};
+          setStatus("생성 중...");
+          const prompt = buildFreePrompt(data, typeKey, TYPE_INFO);
+          const raw = await callGemini(prompt);
 
-          for (const axis of axes) {
-            setAxisStatus(axis, `${axis} · 생성 중...`);
-            const prompt = buildAxisPrompt(axis, sides[axis], data, typeKey, TYPE_INFO);
-            const raw = await callGemini(prompt);
+          // JSON이면 포맷해서, 아니면 그대로 보여주기
+          const parsed = safeParseJSON(raw);
+          const pretty = parsed.ok ? parsed.jsonText : (raw || "");
+          showOutput(pretty || "생성된 내용이 없습니다.");
+          setStatus("생성 완료");
 
-            // 파싱(전용 파서가 아니라 관대한 파서 사용)
-            const parsed = safeParseJSON(raw);
-            const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
-
-            results[axis] = parsed.ok ? parsed.data : { raw };
-            showAxisOutput(axis, pretty);
-            setAxisStatus(axis, `${axis} · 생성 완료`);
-          }
-
-          // Firestore 저장(문서 소유자일 때만)
+          // (소유자일 때) Firestore 저장
           const me = auth.currentUser?.uid || "";
           if (data.ownerUid && me && data.ownerUid === me) {
             await setDoc(ref, {
-              aiAxisSolutions: results,
-              aiAxisGeneratedAt: serverTimestamp()
+              aiSolutionFree: parsed.ok ? parsed.data : { text: raw || "" },
+              aiGeneratedAt: serverTimestamp(),
+              aiParseStatus: parsed.ok ? "ok" : "fallback"
             }, { merge: true });
           }
         } catch (err) {
-          console.error(err);
-          // 축 상태들에 에러를 표시
-          ["SI", "WT", "LR", "QE"].forEach(ax => setAxisStatus(ax, `${ax} · 생성 실패`));
-          document.getElementById("ai-card").insertAdjacentHTML(
-            "beforeend",
-            `<div class="muted small" style="margin-top:.8rem;color:#c00">오류: ${err?.message || err}</div>`
-          );
+          setStatus("생성 실패: " + (err?.message || err));
         } finally {
           btn.disabled = false;
         }
