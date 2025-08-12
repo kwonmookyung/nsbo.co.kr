@@ -270,32 +270,23 @@
         const hit = rows.find(r => preds.some(p => p((r?.question || "").trim())));
         return (hit?.answer ?? "미입력") || "미입력";
       };
-      function setStatus(text) {
-        const el = document.getElementById("ai-status");
-        if (el) el.textContent = text;
-      }
-      function showOutput(text) {
-        const out = document.getElementById("ai-output");
-        if (out) { out.textContent = text; out.classList.remove("hide"); }
-      }
+
       return {
-        industry: find([
-          q => q === "당신의 업종은 무엇인가요?",
-          q => q.includes("업종")
-        ]),
-        avg_daily_sales: find([
-          q => q === "하루 평균 매출은 얼마인가요?",
-          q => q.includes("하루") && q.includes("매출")
-        ]),
-        region: find([
-          q => q === "가게가 위치한 지역은?",
-          q => q.includes("지역")
-        ]),
-        operating_period: find([
-          q => q === "운영 기간은 얼마나 되었나요?",
-          q => q.includes("운영 기간")
-        ]),
+        industry: find([q => q === "당신의 업종은 무엇인가요?", q => q.includes("업종")]),
+        avg_daily_sales: find([q => q === "하루 평균 매출은 얼마인가요?", q => q.includes("하루") && q.includes("매출")]),
+        region: find([q => q === "가게가 위치한 지역은?", q => q.includes("지역")]),
+        operating_period: find([q => q === "운영 기간은 얼마나 되었나요?", q => q.includes("운영 기간")]),
       };
+    } // ← 여기서 함수가 끝납니다 (중요)
+
+    // ✅ 전역 스코프에 있어야 하는 함수들
+    function setStatus(text) {
+      const el = document.getElementById("ai-status");
+      if (el) el.textContent = text;
+    }
+    function showOutput(text) {
+      const out = document.getElementById("ai-output");
+      if (out) { out.textContent = text; out.classList.remove("hide"); }
     }
     function renderTypeCardWith(typeInfo, typeKey) {
       const d = typeInfo || null;
