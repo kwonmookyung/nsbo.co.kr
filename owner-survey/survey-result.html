@@ -265,7 +265,32 @@
         }
       }
     }
+    function extractProfileFromResponses(responses) {
+      const rows = responses || [];
+      const find = (preds) => {
+        const hit = rows.find(r => preds.some(p => p((r?.question || "").trim())));
+        return (hit?.answer ?? "미입력") || "미입력";
+      };
 
+      return {
+        industry: find([
+          q => q === "당신의 업종은 무엇인가요?",
+          q => q.includes("업종")
+        ]),
+        avg_daily_sales: find([
+          q => q === "하루 평균 매출은 얼마인가요?",
+          q => q.includes("하루") && q.includes("매출")
+        ]),
+        region: find([
+          q => q === "가게가 위치한 지역은?",
+          q => q.includes("지역")
+        ]),
+        operating_period: find([
+          q => q === "운영 기간은 얼마나 되었나요?",
+          q => q.includes("운영 기간")
+        ]),
+      };
+    }
     function renderTypeCardWith(typeInfo, typeKey) {
       const d = typeInfo || null;
       const $pill = document.getElementById("type-pill");
@@ -319,27 +344,37 @@
     }
 
     function buildPrompt(docData, typeKey, typeInfo) {
-      const safe = (v) => (typeof v === "string" ? v : JSON.stringify(v || {}));
+      const p = extractProfileFromResponses(docData?.responses);
+
       const lines = [];
       lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
       lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
       lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
       lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
-      lines.push("아래 설문 요약을 바탕으로, 지금 당장 실천할 7일 액션과 30/90일 계획, 예상 리스크를 JSON으로 답하세요.");
-      lines.push("JSON 키: {\"quick_wins\":[], \"plan_30d\":[], \"plan_90d\":[], \"risks\":[], \"kpis\":[]}");
-      lines.push("각 항목은 3~6개, 한 항목당 1문장, 너무 장황하지 않게.");
-      lines.push("");
-      lines.push("=== 설문 요약 ===");
-      lines.push(`공통정보: ${safe(docData?.common)}`);
-      lines.push(`스코어: ${safe(docData?.scores)}`);
-      lines.push(`핵심 이슈: ${safe(docData?.issues) || "미입력"}`);
-      lines.push(`기타 메모: ${safe(docData?.notes) || "없음"}`);
+
+      // ✅ 요청하신 4가지 핵심 정보 명시
+      lines.push("=== 사용자 핵심 정보(설문) ===");
+      lines.push(`업종: ${p.industry}`);
+      lines.push(`하루 평균 매출: ${p.avg_daily_sales}`);
+      lines.push(`지역: ${p.region}`);
+      lines.push(`운영 기간: ${p.operating_period}`);
+
+      // ✅ 출력 규칙 및 플랫폼 일반 용어 사용 가이드
+      lines.push("위 사용자 정보 4가지를 반드시 반영하여, 실천 가능한 계획을 제시하세요.");
+      lines.push("플랫폼/채널 실명은 사용하지 말고 '마케팅', '배달앱', 'SNS', '지도/검색', '동네 커뮤니티' 같은 일반 용어로만 쓰세요.");
+      lines.push('JSON으로만 답하세요. 키는 {"quick_wins":[], "plan_30d":[], "plan_90d":[], "risks":[], "kpis":[]} 입니다.');
+      lines.push("각 배열은 3~6개 항목, 한 항목당 1문장, 과장은 피하고 간결하게 작성하세요.");
+
       return lines.join("\n");
-    }
+    } // ← 이 중괄호가 꼭 필요합니다!
 
     async function callGemini(prompt) {
       if (window.GEMINI_ENDPOINT) {
-        const r = await fetch(window.GEMINI_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt }) });
+        const r = await fetch(window.GEMINI_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
         if (!r.ok) throw new Error("서버 응답 실패");
         return await r.text();
       }
@@ -376,6 +411,13 @@
 
       const scores = data.finalScores || data.scores || data.score || null;
       document.getElementById("meta-scores").textContent = scores ? JSON.stringify(scores) : "—";
+
+      // (선택) 메타 카드에 4가지 핵심 정보도 보여주기
+      const prof = extractProfileFromResponses(data?.responses);
+      document.getElementById("meta").insertAdjacentHTML(
+        "beforeend",
+        `<br/>업종: <b>${prof.industry}</b> · 하루 평균 매출: <b>${prof.avg_daily_sales}</b> · 지역: <b>${prof.region}</b> · 운영 기간: <b>${prof.operating_period}</b>`
+      );
 
       // ✅ 파이어스토어의 유형을 1순위로 사용 (finalType → motiType → type)
       let typeKey = String(data.finalType || data.motiType || data.type || "").toUpperCase();
@@ -429,6 +471,7 @@
       document.getElementById("type-tagline").textContent = e?.message || String(e);
       document.getElementById("btn-generate").disabled = true;
     }
+    // [교체 끝]
   </script>
 </body>
 
