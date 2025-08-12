@@ -497,6 +497,7 @@
           const pretty = parsed.ok ? parsed.jsonText : (raw || "");
           showOutput(pretty || "생성된 내용이 없습니다.");
           setStatus("생성 완료");
+          document.getElementById("ai-cta")?.classList.remove("hide");
 
           // (소유자일 때) Firestore 저장
           const me = auth.currentUser?.uid || "";
