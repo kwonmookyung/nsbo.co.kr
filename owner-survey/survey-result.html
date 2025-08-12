@@ -215,13 +215,12 @@
       measurementId: "G-YCWF8ENKC4"
     };
 
-    const TYPE_MAP_URL = "data/type-map.json?v=20250811"; // 외부 타입 데이터
+    const TYPE_MAP_URL = "/owner-survey/data/type-map.json?v=20250811";
 
     /***** Firebase 초기화 *****/
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { parseGeminiSolution } from "/owner-survey/gemini-parser.js";
     window.GEMINI_API_KEY = "AIzaSyCxxCblNa3Vl7ORu-eS2KgjFPE9ArYkMfM";
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -338,29 +337,6 @@
       try { $pill.setAttribute("data-type", typeKey); } catch { }
     }
 
-    function computeTypeFromScores(scores) {
-      if (!scores) return null;
-      const s1 = (scores.S ?? 0) >= (scores.I ?? 0) ? "S" : "I";
-      const s2 = (scores.W ?? 0) >= (scores.T ?? 0) ? "W" : "T";
-      const s3 = (scores.L ?? 0) >= (scores.R ?? 0) ? "L" : "R";
-      const s4 = (scores.E ?? 0) >= (scores.Q ?? 0) ? "E" : "Q";
-      return s1 + s2 + s3 + s4;
-    }
-
-    function showAI(text) {
-      const out = document.getElementById("ai-output");
-      const st = document.getElementById("ai-status");
-      out.textContent = text;
-      out.classList.remove("hide");
-      st.textContent = "생성이 완료되었습니다.";
-    }
-
-    function setLoading(flag) {
-      const btn = document.getElementById("btn-generate");
-      const st = document.getElementById("ai-status");
-      btn.disabled = flag;
-      st.textContent = flag ? "Gemini가 솔루션을 생성 중입니다..." : "준비 완료.";
-    }
     // === 축/사이드 계산 ===
     function getAxisSides(typeKey = "") {
       const t = String(typeKey || "").toUpperCase();
@@ -368,7 +344,7 @@
         SI: (t[0] === "S" ? "S" : "I"),
         WT: (t[1] === "W" ? "W" : "T"),
         LR: (t[2] === "L" ? "L" : "R"),
-        QE: (t[3] === "Q" ? "Q" : "E"), // 주의: 기존 computeTypeFromScores는 E/Q 비교였지만, 코드 정의가 Q/E라면 여길 유지
+        QE: (t[3] === "Q" ? "Q" : "E"), 
       };
     }
 
@@ -453,54 +429,29 @@
       throw new Error("Gemini 호출 설정이 없습니다. (GEMINI_ENDPOINT 또는 GEMINI_API_KEY)");
     }
 
-    document.getElementById("btn-generate").addEventListener("click", async () => {
-      const btn = document.getElementById("btn-generate");
-      btn.disabled = true;
-
-      try {
-        const sides = getAxisSides(typeKey);
-        const axes = ["SI", "WT", "LR", "QE"];
-        const results = {};
-
-        for (const axis of axes) {
-          setAxisStatus(axis, `${axis} · 생성 중...`);
-          const prompt = buildAxisPrompt(axis, sides[axis], data, typeKey, TYPE_INFO);
-          const raw = await callGemini(prompt);
-
-          // 파싱(전용 파서가 아니라 관대한 파서 사용)
-          const parsed = safeParseJSON(raw);
-          const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
-
-          results[axis] = parsed.ok ? parsed.data : { raw };
-          showAxisOutput(axis, pretty);
-          setAxisStatus(axis, `${axis} · 생성 완료`);
-        }
-
-        // Firestore 저장(문서 소유자일 때만)
-        const me = auth.currentUser?.uid || "";
-        if (data.ownerUid && me && data.ownerUid === me) {
-          await setDoc(ref, {
-            aiAxisSolutions: results,
-            aiAxisGeneratedAt: serverTimestamp()
-          }, { merge: true });
-        }
-      } catch (err) {
-        console.error(err);
-        // 축 상태들에 에러를 표시
-        ["SI", "WT", "LR", "QE"].forEach(ax => setAxisStatus(ax, `${ax} · 생성 실패`));
-        document.getElementById("ai-card").insertAdjacentHTML(
-          "beforeend",
-          `<div class="muted small" style="margin-top:.8rem;color:#c00">오류: ${err?.message || err}</div>`
-        );
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
     /** 메인 */
     const uuid = getUUID();
     document.getElementById("meta-uuid").textContent = uuid || "—";
-
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      const pick = id => document.getElementById(id)?.textContent?.trim();
+      const raw = {
+        SI: pick("out-si"),
+        WT: pick("out-wt"),
+        LR: pick("out-lr"),
+        QE: pick("out-qe"),
+      };
+      // 가능하면 JSON으로 파싱해 합치고, 아니면 문자열 그대로 담습니다.
+      const tryParse = s => { try { return JSON.parse(s); } catch { return s || ""; } };
+      const merged = {
+        SI: raw.SI ? tryParse(raw.SI) : "",
+        WT: raw.WT ? tryParse(raw.WT) : "",
+        LR: raw.LR ? tryParse(raw.LR) : "",
+        QE: raw.QE ? tryParse(raw.QE) : ""
+      };
+      const text = JSON.stringify(merged, null, 2);
+      if (text === '{"SI":"","WT":"","LR":"","QE":""}') { alert("복사할 내용이 없습니다."); return; }
+      navigator.clipboard.writeText(text).then(() => alert("복사 완료"));
+    });
     try {
       await ensureAnon();
       await loadTypeMap(); // 타입맵 먼저 로드
@@ -535,36 +486,46 @@
       renderTypeCardWith(TYPE_INFO, typeKey);
 
       document.getElementById("btn-generate").addEventListener("click", async () => {
-        try {
-          setLoading(true);
-          const prompt = buildPrompt(
-            data,
-            typeKey,
-            TYPE_INFO || { name: "", tagline: "", strengths: [], weaknesses: [] }
-          );
-          const raw = await callGemini(prompt);
+        const btn = document.getElementById("btn-generate");
+        btn.disabled = true;
 
-          // ✅ 전용 파서로 견고하게 파싱
-          const parsed = parseGeminiSolution(raw);
-          const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
-          showAI(pretty);
-          if (!parsed.ok && parsed.warning) {
-            document.getElementById("ai-status").textContent =
-              "주의: " + parsed.warning + " — 원문/후보를 표시합니다.";
+        try {
+          const sides = getAxisSides(typeKey);
+          const axes = ["SI", "WT", "LR", "QE"];
+          const results = {};
+
+          for (const axis of axes) {
+            setAxisStatus(axis, `${axis} · 생성 중...`);
+            const prompt = buildAxisPrompt(axis, sides[axis], data, typeKey, TYPE_INFO);
+            const raw = await callGemini(prompt);
+
+            // 파싱(전용 파서가 아니라 관대한 파서 사용)
+            const parsed = safeParseJSON(raw);
+            const pretty = parsed.ok ? parsed.jsonText : (parsed.jsonText || raw);
+
+            results[axis] = parsed.ok ? parsed.data : { raw };
+            showAxisOutput(axis, pretty);
+            setAxisStatus(axis, `${axis} · 생성 완료`);
           }
 
+          // Firestore 저장(문서 소유자일 때만)
           const me = auth.currentUser?.uid || "";
           if (data.ownerUid && me && data.ownerUid === me) {
             await setDoc(ref, {
-              aiSolution: parsed.ok ? parsed.data : { raw },
-              aiGeneratedAt: serverTimestamp(),
-              aiParseStatus: parsed.ok ? "ok" : "fallback"
+              aiAxisSolutions: results,
+              aiAxisGeneratedAt: serverTimestamp()
             }, { merge: true });
           }
         } catch (err) {
-          document.getElementById("ai-status").textContent = "생성 실패: " + (err?.message || err);
+          console.error(err);
+          // 축 상태들에 에러를 표시
+          ["SI", "WT", "LR", "QE"].forEach(ax => setAxisStatus(ax, `${ax} · 생성 실패`));
+          document.getElementById("ai-card").insertAdjacentHTML(
+            "beforeend",
+            `<div class="muted small" style="margin-top:.8rem;color:#c00">오류: ${err?.message || err}</div>`
+          );
         } finally {
-          setLoading(false);
+          btn.disabled = false;
         }
       });
 
@@ -574,6 +535,7 @@
       document.getElementById("type-tagline").textContent = e?.message || String(e);
       document.getElementById("btn-generate").disabled = true;
     }
+
     // [교체 끝]
   </script>
 </body>
