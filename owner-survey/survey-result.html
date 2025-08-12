@@ -352,10 +352,10 @@
     function buildAxisPrompt(axisKey, side, docData, typeKey, typeInfo) {
       const p = extractProfileFromResponses(docData?.responses);
       const axisLabel = {
-        SI: "S vs I (운영자 성향)",
-        WT: "W vs T (신규 유입 vs 단골 유지)",
-        LR: "L vs R (논리형 vs 감각형 운영)",
-        QE: "Q vs E (조직형 vs 감정형 응대)"
+        SI: "S vs I (매장 운영 효율 중심,수치 기반 판단 vs 매장 인력 관계 중심, 감정과 분위기 중시)",
+        WT: "W vs T (신규 유입(마케팅,SNS,이벤트 유입 선호) vs 단골 유지(단골,입소문,신뢰중심 운영))",
+        LR: "L vs R (감정 억제, 메뉴얼 기반 응대 vs 친화적, 감정 교류 중심 대응)",
+        QE: "Q vs E (수치,분석,전략 운영 vs 감각,즉흥,현실 감각 중시 운영)"
       }[axisKey] || axisKey;
 
       const lines = [];
@@ -373,6 +373,7 @@
       lines.push("- 아래 형식으로 대답해주세요.");
       lines.push("- 어떤 솔루션인지? 해당 솔루션이 과학적 근거/통계적 기반으로 얼마나 매출 상승을 기대할수있는지?(대략적인 예상,정확하지않아도됨)");
       lines.push("- 인사말 하지말고, 가장 추천하는 전략 한가지만 정해서 줘.");
+      lines.push("- 너무 어려운용어는 사용하지 말고, 어떤 방식으로 하면 어떤 근거에 의거하여 매출 상승효과를 몇% 기대할수 있다. 식으로");
       return lines.join("\n");
     }
 
