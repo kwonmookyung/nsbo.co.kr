@@ -301,41 +301,11 @@
         return null;
       }
     }
-    // 결과 페이지 경로(배포 경로에 맞게 수정하세요)
-    const SURVEY_RESULT_PATH = "/owner-survey/survey-result.html";
 
-    // 결과 링크 만들기
-    function buildResultUrl(uuid) {
-      const base = location.origin;
-      return `${base}${SURVEY_RESULT_PATH}?uuid=${encodeURIComponent(uuid)}`;
-    }
+    // 결과 링크 만들
 
     // 카카오톡(내 톡)으로 결과 보내기
-    async function sendTalkToMe(uuid) {
-      const url = buildResultUrl(uuid);
 
-      return new Promise((resolve, reject) => {
-        Kakao.API.request({
-          url: '/v2/api/talk/memo/default/send',
-          data: {
-            template_object: {
-              object_type: 'feed',
-              content: {
-                title: '사장님 맞춤 결과',
-                description: '버튼을 눌러 결과를 확인하세요.',
-                image_url: 'https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_og.png',
-                link: { web_url: url, mobile_web_url: url }
-              },
-              buttons: [
-                { title: '결과 보기', link: { web_url: url, mobile_web_url: url } }
-              ]
-            }
-          },
-          success: resolve,
-          fail: reject
-        });
-      });
-    }
     // 카카오로 결과 받기 (연동)
     // 카카오로 결과 받기 (연동 + 내 톡으로 결과 링크 전송)
     window.submitResult = async function () {
@@ -344,13 +314,9 @@
         return;
       }
 
-      let surveyUUID = localStorage.getItem('surveyUUID');
+      const surveyUUID = localStorage.getItem('surveyUUID');
       if (!surveyUUID) {
-        // 페이지 로드 직후 누른 경우 등, 아직 저장이 안 됐을 수 있으니 즉시 생성 시도
-        surveyUUID = await saveResultToFirestore();
-      }
-      if (!surveyUUID) {
-        alert('설문 결과 문서가 생성되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        alert('설문 결과 문서가 생성되지 않았습니다. 다시 시도해주세요.');
         return;
       }
 
@@ -359,8 +325,7 @@
       }
 
       Kakao.Auth.login({
-        // talk_message 스코프가 있어야 '내 톡으로 보내기' 가능
-        scope: 'profile_nickname,account_email,talk_message',
+        scope: 'profile_nickname,account_email', // ← talk_message 제거
         success: function () {
           Kakao.API.request({
             url: '/v2/user/me',
@@ -368,7 +333,8 @@
               try {
                 const kakaoId = res.id?.toString() || '';
                 const account = res.kakao_account || {};
-                // 설문 문서 업데이트 (연동 마킹)
+
+                // 설문 문서에 카카오 연동 표시
                 await updateDoc(
                   doc(db, `users/${userId}/survey_results/${surveyUUID}`),
                   {
@@ -380,7 +346,8 @@
                     expiresAt: null
                   }
                 );
-                // 민감정보는 private 문서에
+
+                // 민감정보는 private 문서에 저장
                 await setDoc(
                   doc(db, `users/${userId}/private/kakao`),
                   {
@@ -397,22 +364,17 @@
                   { merge: true }
                 );
 
-                // ✅ 내 톡으로 결과 링크 전송
-                // 카카오 메시지 전송은 생략하고 바로 마이페이지로 이동
+                // ✅ 마이페이지로 바로 이동
                 localStorage.setItem('loginSource', 'result');
 
                 // /.../owner-survey/... 앞의 경로만 남김 (owner-sruvey 오타도 허용)
                 const m = location.pathname.match(/^(.*)\/owner-?survey\/.*$/i);
-                const basePath = m ? m[1] : '';  // 예: '', '/nbso' 등 배포 서브경로 대응
+                const basePath = m ? m[1] : '';  // 예: '', '/nbso' 등
 
-                // 루트의 mypage.html로 이동 + 탭/uuid 전달
                 const target = new URL(`${basePath}/mypage.html`, location.origin);
                 target.searchParams.set('uuid', surveyUUID);
-                target.searchParams.set('tab', 'result');   // 쿼리 방식 탭 표시
-                target.hash = '#tab=result';                // 해시 방식 탭 표시(둘 중 하나만 써도 됨)
 
-                // 히스토리 깔끔히(뒤로가기 시 재로그인 방지)
-                window.location.replace(target.href);
+                window.location.href = target.href;
               } catch (e) {
                 console.error('카카오 연동 중 오류:', e);
                 alert('카카오 연동 중 오류가 발생했습니다.');

@@ -432,58 +432,141 @@
 
         function loginWithKakao() {
             Kakao.Auth.login({
+                // 🔓 수집 범위 확대 (콘솔에서 동의항목 등록/승인되어야 값이 옵니다)
+                scope: 'profile_nickname,profile_image,account_email,gender,age_range,birthday,birthyear,phone_number',
                 success: function (authObj) {
                     console.log("✅ 카카오 로그인 성공:", authObj);
-                    const kakaoAccessToken = authObj.access_token;
 
-                    // ✅ 1. 사용자 정보 요청
+                    // 1) 카카오 프로필 조회
                     Kakao.API.request({
                         url: '/v2/user/me',
-                        success: function (response) {
-                            console.log("✅ 사용자 정보 가져오기 성공:", response);
+                        success: async function (res) {
+                            try {
+                                // Firebase 서버/클라 타임스탬프
+                                const nowClient = firebase.firestore.Timestamp.now();
+                                const nowServer = firebase.firestore.FieldValue.serverTimestamp();
 
-                            const kakaoId = response.id.toString();
-                            const userTimestamp = firebase.firestore.Timestamp.now();
+                                // 현재 Firebase 사용자 (익명로그인 완료 전제)
+                                const user = auth.currentUser;
+                                if (!user) {
+                                    alert('로그인 세션이 만료되었습니다. 새로고침 후 다시 시도해주세요.');
+                                    return;
+                                }
+                                const firebaseUid = user.uid;
 
-                            const userData = {
-                                nickname: response.kakao_account?.profile?.nickname ?? response.properties?.nickname ?? "",
-                                email: response.kakao_account?.email ?? "",
-                                gender: response.kakao_account?.gender ?? "",
-                                age_range: response.kakao_account?.age_range ?? "",
-                                birthday: response.kakao_account?.birthday ?? "",
-                                phone_number: response.kakao_account?.phone_number ?? "",
-                                profile_image: response.kakao_account?.profile?.profile_image_url ?? response.properties?.profile_image ?? "",
-                                last_login_timestamp: firebase.firestore.Timestamp.now()
-                            };
+                                // 설문 결과 문서 키 (있으면 링크 업데이트)
+                                const surveyUUID =
+                                    localStorage.getItem('surveyUUID') ||
+                                    new URLSearchParams(location.search).get('uuid') ||
+                                    null;
 
-                            const firebaseUid = auth.currentUser.uid;
-                            const docRef = db.collection("users").doc(firebaseUid);
+                                // ─────────────────────────────────────────────
+                                // 응답 파싱 (널 안전)
+                                // ─────────────────────────────────────────────
+                                const kakaoId = String(res?.id ?? '');
+                                const account = res?.kakao_account ?? {};
+                                const profile = account?.profile ?? {};
 
-                            // ✅ 2. Firestore 저장 또는 업데이트
-                            docRef.get().then(docSnap => {
-                                if (docSnap.exists) {
-                                    console.log("✅ 기존 사용자 - 정보 업데이트");
-                                    return docRef.update({ uid: firebaseUid, ...userData, kakaoId });
-                                } else {
-                                    console.log("✅ 신규 사용자 - 정보 저장");
-                                    return docRef.set({
-                                        uid: firebaseUid,
-                                        kakaoId,
-                                        ...userData,
-                                        created_timestamp: userTimestamp
+                                const nickname = profile?.nickname ?? res?.properties?.nickname ?? '';
+                                const email = account?.email ?? null;
+                                const gender = account?.gender ?? null;            // 'male' | 'female' | null
+                                const ageRange = account?.age_range ?? null;         // 예: '20~29'
+                                const birthday = account?.birthday ?? null;          // 'MMDD'
+                                const birthyear = account?.birthyear ?? null;         // 'YYYY' (승인 필요)
+                                const phoneNumber = account?.phone_number ?? null;      // E.164 (승인 필요)
+                                const profileImageUrl = profile?.profile_image_url
+                                    ?? res?.properties?.profile_image
+                                    ?? profile?.thumbnail_image_url
+                                    ?? null;
+
+                                // ─────────────────────────────────────────────
+                                // 저장 1) 중앙 프로필: users/{uid}
+                                // ─────────────────────────────────────────────
+                                await db.collection('users').doc(firebaseUid).set({
+                                    uid: firebaseUid,
+                                    provider: 'kakao',
+                                    kakaoId,
+                                    displayName: nickname || '',
+                                    email,
+                                    gender,
+                                    ageRange,
+                                    birthday,
+                                    birthyear,
+                                    phoneNumber,
+                                    profileImageUrl,
+                                    last_login_timestamp: nowServer,
+                                    updatedAt: nowServer,
+                                    // (초기 생성 시각이 필요하면 클라 타임도 함께 저장)
+                                    created_timestamp: nowClient
+                                }, { merge: true });
+
+                                // ─────────────────────────────────────────────
+                                // 저장 2) 민감/원본 스냅샷: users/{uid}/private/kakao
+                                // ─────────────────────────────────────────────
+                                await db.doc(`users/${firebaseUid}/private/kakao`).set({
+                                    kakaoId,
+                                    email,
+                                    nickname,
+                                    gender,
+                                    age_range: ageRange,
+                                    birthday,
+                                    birthyear,
+                                    phone_number: phoneNumber,
+                                    profile_image: profileImageUrl,
+                                    connectedAt: nowServer,
+                                    // 필요 시 원본 전체 보관
+                                    raw: res
+                                }, { merge: true });
+
+                                // (선택) 동의한 scope 목록도 기록해두면 추후 유용
+                                try {
+                                    Kakao.API.request({
+                                        url: '/v2/user/scopes',
+                                        success: async function (scopesRes) {
+                                            const consentedScopes = (scopesRes?.scopes ?? [])
+                                                .filter(s => s?.agreed)
+                                                .map(s => s?.id);
+                                            await db.collection('users').doc(firebaseUid).set({
+                                                consentedScopes,
+                                                scopesUpdatedAt: nowServer
+                                            }, { merge: true });
+                                        },
+                                        fail: function (e) {
+                                            console.warn('동의 scope 조회 실패(무시 가능):', e);
+                                        }
+                                    });
+                                } catch (e) {
+                                    console.warn('동의 scope 조회 생략/실패:', e);
+                                }
+
+                                // ─────────────────────────────────────────────
+                                // 저장 3) 설문 결과 문서 링크 갱신 (있을 때만)
+                                // ─────────────────────────────────────────────
+                                if (surveyUUID) {
+                                    await db.doc(`users/${firebaseUid}/survey_results/${surveyUUID}`).set({
+                                        kakaoLinked: true,
+                                        linkedAt: nowServer,
+                                        kakaoUid: kakaoId,
+                                        kakaoEmail: email || '',
+                                        kakaoNickname: nickname || '',
+                                        // TTL 해제
+                                        expiresAt: null
                                     }, { merge: true });
                                 }
-                            }).then(() => {
-                                console.log("✅ Firestore 저장 완료");
-                                window.location.href = "kakao-login-success.html";
-                            }).catch(error => {
-                                console.error("❌ Firestore 저장 실패:", error);
-                                alert("회원 정보 저장 실패: " + error.message);
-                            });
+
+                                console.log('✅ Firestore 저장 완료');
+                                // 후속 이동 (필요시 uuid 전달)
+                                // window.location.href = `kakao-login-success.html?uuid=${surveyUUID ?? ''}`;
+                                alert('카카오 연동 및 정보 저장이 완료되었습니다.');
+
+                            } catch (error) {
+                                console.error('❌ 카카오 연동 처리 실패:', error);
+                                alert('카카오 연동 처리 중 오류가 발생했습니다: ' + error?.message);
+                            }
                         },
                         fail: function (error) {
-                            console.error("❌ 사용자 정보 요청 실패:", error);
-                            alert("사용자 정보 요청 중 오류 발생");
+                            console.error('❌ 사용자 정보 요청 실패:', error);
+                            alert('사용자 정보 요청 중 오류가 발생했습니다.');
                         }
                     });
                 },
@@ -495,4 +578,5 @@
         }
     </script>
 </body>
+
 </html>
