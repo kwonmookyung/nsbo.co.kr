@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <title>마이페이지 | 착한소상공인지원마켓</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+
+    <style>
+        /* 레이아웃 */
+        .mypage-wrap {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 980px) {
+            .mypage-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 좌측 사이드 */
+        .side {
+            position: sticky;
+            top: 90px;
+            /* 고정 앱바 높이 보정 */
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .06);
+            padding: 1rem;
+        }
+
+        .side h3 {
+            margin: .2rem 0 1rem;
+            font-size: 1.05rem;
+            letter-spacing: .02em;
+        }
+
+        .side .nav {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .side .nav li {
+            margin-bottom: .35rem;
+        }
+
+        .side .nav button {
+            width: 100%;
+            text-align: left;
+            padding: .65rem .8rem;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: #fafafa;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .side .nav button.active {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        /* 우측 콘텐츠 카드 */
+        .content-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .06);
+            padding: 1.25rem 1.25rem;
+        }
+
+        .content-card h2 {
+            margin: 0 0 .6rem;
+            font-size: 1.35rem;
+        }
+
+        .muted {
+            color: #666;
+        }
+
+        /* 결과 버튼 */
+        .btn-primary {
+            display: inline-block;
+            padding: .8rem 1.1rem;
+            border-radius: 10px;
+            background: #111;
+            color: #fff !important;
+            font-weight: 700;
+            border: 1px solid #111;
+        }
+
+        .btn-primary:focus,
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+
+        /* 헤더 고정 높이 보정 (index.html과 동일 컨셉) */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2em;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
+        }
+
+        .wrapper.style1 {
+            padding-top: 6em !important;
+        }
+
+        @media (max-width:1024px) {
+            .wrapper.style1 {
+                padding-top: 1em !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header (index.html과 동일) -->
+        <div id="header">
+            <div>
+                <a href="index.html" id="logo">
+                    <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height:80px;">
+                </a>
+            </div>
+
+            <nav id="nav">
+                <ul>
+                    <li><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
+                    <li class="current"><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a></li>
+                    <li><a href="index.html">홈</a></li>
+                    <li>
+                        <a href="brand.html">브랜드</a>
+                        <ul>
+                            <li><a href="brand.html#company-intro">회사소개</a></li>
+                            <li><a href="brand.html#ci">회사CI</a></li>
+                            <li><a href="brand.html#culture">기업문화</a></li>
+                            <li><a href="brand.html#sustainability">지속가능경영</a></li>
+                            <li><a href="brand.html#roadmap">로드맵</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="left-sidebar.html">솔루션</a></li>
+                    <li><a href="right-sidebar.html">프로그램</a></li>
+                    <li><a href="two-sidebar.html">고객문의</a></li>
+                    <li><a href="no-sidebar.html">착소마켓</a></li>
+                </ul>
+            </nav>
+        </div>
+        <!-- /Header -->
+
+        <!-- Body -->
+        <section class="wrapper style1">
+            <div class="container">
+                <div class="mypage-wrap">
+
+                    <!-- Left: Submenu -->
+                    <aside class="side">
+                        <h3>마이페이지</h3>
+                        <ul class="nav">
+                            <li><button type="button" data-tab="profile" class="active">내 정보 보기</button></li>
+                            <li><button type="button" data-tab="result">설문조사 결과 보기</button></li>
+                        </ul>
+                    </aside>
+
+                    <!-- Right: Content -->
+                    <main>
+                        <!-- 프로필 -->
+                        <section id="tab-profile" class="content-card">
+                            <h2>내 정보 보기</h2>
+                            <p class="muted">로그인된 계정의 기본 정보를 여기에 표시합니다. (추후 연동)</p>
+                            <div style="margin-top:.8rem">
+                                <div><b>이름</b>: —</div>
+                                <div><b>이메일</b>: —</div>
+                                <div><b>가입일</b>: —</div>
+                            </div>
+                        </section>
+
+                        <!-- 설문 결과 -->
+                        <section id="tab-result" class="content-card" style="display:none;">
+                            <h2>설문조사 결과 보기</h2>
+                            <p class="muted">가장 최근 설문 결과 또는 URL 파라미터의 결과를 확인할 수 있어요.</p>
+
+                            <div id="result-box" style="margin-top:1rem;">
+                                <div style="padding:.9rem 1rem; border:1px solid #eee; border-radius:10px;">
+                                    <div style="margin-bottom:.4rem;">
+                                        <b>결과 UUID</b>: <span id="uuid-view">—</span>
+                                    </div>
+                                    <a id="btn-open-result" class="btn-primary" href="#" target="_blank"
+                                        rel="noopener">결과 페이지 열기</a>
+                                </div>
+                                <p class="muted" style="margin-top:.6rem;">
+                                    * 설문을 막 마치고 이동된 경우 자동으로 UUID가 들어갑니다.
+                                </p>
+                            </div>
+                        </section>
+                    </main>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer (선택) -->
+        <footer id="footer">
+            <div class="container">
+                <ul class="copyright">
+                    <li>&copy; 착한소상공인지원마켓. All rights reserved.</li>
+                    <li>Powered by HTML5 UP</li>
+                </ul>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Scripts (테마 기본 JS) -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <script>
+        // 탭 전환
+        const sideButtons = document.querySelectorAll('.side .nav button');
+        const tabProfile = document.getElementById('tab-profile');
+        const tabResult = document.getElementById('tab-result');
+
+        function activate(tab) {
+            sideButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            tabProfile.style.display = (tab === 'profile') ? '' : 'none';
+            tabResult.style.display = (tab === 'result') ? '' : 'none';
+        }
+        sideButtons.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
+
+        // URL의 uuid 파라미터 있으면 결과 탭으로 열기 + 버튼 링크 구성
+        function getParam(name) {
+            const u = new URL(location.href);
+            return u.searchParams.get(name);
+        }
+        (function initResultLink() {
+            const uuid = getParam('uuid') || localStorage.getItem('surveyUUID') || '';
+            const uuidSpan = document.getElementById('uuid-view');
+            const linkBtn = document.getElementById('btn-open-result');
+
+            if (uuid) {
+                uuidSpan.textContent = uuid;
+                // 배포 경로에 맞게 조정(루트 기준 owner-survey 폴더)
+                const resultUrl = `${location.origin}/owner-survey/survey-result.html?uuid=${encodeURIComponent(uuid)}`;
+                linkBtn.href = resultUrl;
+                activate('result'); // 자동으로 결과 탭 열기
+            } else {
+                uuidSpan.textContent = '—';
+                linkBtn.href = '#';
+                activate('profile'); // 기본은 프로필 탭
+            }
+        })();
+    </script>
+</body>
+
+</html>
