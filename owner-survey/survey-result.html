@@ -404,7 +404,6 @@
                 </div>
                 <div class="right">
                   <button id="btn-generate" class="btn">솔루션 전략 생성</button>
-                  <button id="btn-copy" class="btn secondary">복사</button>
                 </div>
               </div>
             </div>
@@ -699,11 +698,6 @@
         /** 메인 */
         const uuid = getUUID();
         document.getElementById("meta-uuid").textContent = uuid || "—";
-        document.getElementById("btn-copy").addEventListener("click", () => {
-          const t = document.getElementById("ai-output")?.textContent?.trim();
-          if (!t) { alert("복사할 내용이 없습니다."); return; }
-          navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
-        });
         try {
           await ensureAnon();
           await loadTypeMap(); // 타입맵 먼저 로드
