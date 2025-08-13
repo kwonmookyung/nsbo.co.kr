@@ -7,6 +7,172 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <link rel="stylesheet" href="/assets/css/main.css" />
   <style>
+    input[type="submit"].fit,
+    input[type="reset"].fit,
+    input[type="button"].fit,
+    button.fit,
+    .button.fit {
+      width: 100%;
+    }
+
+    input[type="submit"].small,
+    input[type="reset"].small,
+    input[type="button"].small,
+    button.small,
+    .button.small {
+      font-size: 0.8em;
+    }
+
+    /* 배너 슬라이드용 */
+    .slider-container {
+      position: relative;
+      width: 100%;
+      margin: auto;
+      overflow: hidden;
+    }
+
+    .slide {
+      display: none;
+      position: relative;
+    }
+
+    .slide img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 배너와 헤더 겹침 방지 + 아래 콘텐츠 여유 */
+    #banner {
+      margin-top: 80px !important;
+      margin-bottom: 4em !important;
+      position: relative;
+      z-index: 1;
+    }
+
+    .fade {
+      animation-name: fade;
+      animation-duration: 1s;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0.4;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .dot {
+      height: 12px;
+      width: 12px;
+      margin: 0 5px;
+      background-color: #000000;
+      border-radius: 50%;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background-color: #ffffff;
+    }
+
+    .dots-container {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      width: 100%;
+      z-index: 10;
+    }
+
+    /* 모바일 대응: AppBar 숨기고 여백 조정 */
+    #mobile-logo {
+      display: none;
+      position: fixed;
+      top: 1em;
+      left: 1em;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #000 !important;
+      text-decoration: none;
+      z-index: 2000;
+      background: white;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    @media screen and (max-width: 3840px) and (min-width: 1024px) {
+      .wrapper.style1 {
+        padding-top: 6em !important;
+      }
+    }
+
+    @media screen and (max-width: 840px) {
+      #header {
+        display: none !important;
+      }
+    }
+
+    @media screen and (max-width: 1024px) {
+
+      .dots-container {
+        bottom: 15px;
+      }
+
+      #banner {
+        margin-bottom: 1em !important;
+      }
+
+      #mobile-logo {
+        display: block !important;
+      }
+
+      #logo,
+      #logo img,
+      img[src*="logo.jpg"] {
+        display: none !important;
+      }
+
+      .wrapper.style1 {
+        padding-top: 1em !important;
+      }
+
+      .wrapper.style1>.container {
+        padding-left: 3em !important;
+        padding-right: 1em !important;
+      }
+
+      .row.gtr-200>section {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      .box.highlight {
+        text-align: left !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+      }
+
+      .box.highlight .icon {
+        margin: 0 0 1em 0;
+        display: inline-block;
+        float: left;
+      }
+
+      .box.highlight h3,
+      .box.highlight p {
+        margin-left: 6em;
+      }
+    }
+
     .container-narrow {
       max-width: 980px;
       margin: 0 auto;
@@ -182,388 +348,428 @@
   </style>
 </head>
 
-<body>
+<body class="is-preload">
   <div id="page-wrapper">
-    <!-- 사이트 헤더 (기존 네비 그대로 필요하면 복붙해서 쓰세요) -->
-    <section id="main" class="wrapper style1" style="padding-top: 4.5em;">
-      <div class="container container-narrow">
 
-        <!-- 헤더: 유형 배지 + 이름 + 요약 -->
-        <div class="card">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-            <div>
-              <div id="type-pill" class="pill">유형 로딩중...</div>
-              <h1 id="type-name" style="margin:.4rem 0 0; font-size:1.8rem;">—</h1>
-              <div id="type-tagline" class="muted">—</div>
-            </div>
-            <div class="right">
-              <button id="btn-generate" class="btn">솔루션 전략 생성</button>
-              <button id="btn-copy" class="btn secondary">복사</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 강점/단점 -->
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="section-title">유형의 특징</div>
-            <div class="divider"></div>
-            <ul id="strengths" style="margin:0; padding-left:1.1rem;"></ul>
-          </div>
-          <div class="card">
-            <div class="section-title">단점</div>
-            <div class="divider"></div>
-            <ul id="weaknesses" style="margin:0; padding-left:1.1rem;"></ul>
-          </div>
-        </div>
-
-        <!-- 솔루션 전략 (Gemini) -->
-        <div class="card" id="ai-card">
-          <div class="section-title">상황 맞춤 솔루션 전략</div>
-          <div class="divider"></div>
-          <div id="ai-status" class="muted small">아직 생성 전입니다. 위의 <b>솔루션 전략 생성</b> 버튼을 눌러주세요.</div>
-          <div id="ai-output" class="codebox mono hide"></div>
-        </div>
-        <div id="ai-cta" class="cta-box hide">
-          <p>
-            안녕하세요, <b>착한소상공인지원마켓</b>입니다.<br>
-            처음 가게를 차리셨을때의 설레임을 저희는 알고 있습니다.<br>
-            최소한 지금보다는 상황이 더 나아지길 바라시면서 많은 돈과 시간을 투자하셨을거로 생각됩니다.<br>
-            하지만 현재 자영업자의 폐업률은 코로나때보다 더욱 많아진 상황이며,<br>
-            <b>월 소득</b>이 100만원 미만인 개인사업자가 사상 처음으로 900만명을 넘었습니다.<br>
-            그럼에도불구하고 아직도 상위 10%의 자영업자분들은 적게는 <b>10억원</b> 많게는 수십억원 이상의 매출을 유지하고있습니다.<br>
-            왜 이런 차이가 벌어질까요? 맛이없어서? 혹은 상권이 안좋아서? 여러분들의 잘못이 아닙니다.<br>
-            저희 착한소상공인지원마켓에서는 상권,고객층,업체분석 등을 통해 마케팅 및 홍보 전략을 세우고 직접 대행해 드리고 있습니다.<br>
-            저희의 솔루션의 목표는 한 가지 입니다. 바로 소상공인들의 <b>잃어버린 돈과 시간을 되찾아주는 것</b> 입니다.<br>
-            혼자서 고민하지 마세요. 저희가 당신의 가치를 더욱 빛나게 해드리겠습니다.<br>
-            더 자세한 상담을 원하시면 아래 버튼을 눌러 주세요.<br>
-          </p>
-          <a class="btn" href="/two-sidebar.html">문의하기</a>
-        </div>
-
-        <!-- 메타 -->
-        <div class="card small hide">
-          <div class="section-title">결과 정보</div>
-          <div class="divider"></div>
-          <div id="meta" class="muted">
-            UUID: <span id="meta-uuid">—</span> · 저장시각: <span id="meta-time">—</span><br />
-            스코어: <span id="meta-scores" class="mono">—</span>
-          </div>
-        </div>
-
+    <!-- Header -->
+    <div id="header"
+      style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 2em; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+      <div>
+        <a href="index.html" id="logo">
+          <img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
+        </a>
       </div>
-    </section>
-  </div>
+      <nav id="nav">
+        <ul>
+          <li><a href="/kakao-login.html">로그인</a></li>
+          <li>
+            <a href="/mypage.html">마이페이지</a>
+            <ul>
+              <li><a href="/mypage.html">내 정보 보기</a></li>
+              <li><a class="js-myresult-link" href="/owner-survey/survey-result.html">내 설문조사 결과 보기</a></li>
+            </ul>
+          </li>
+          <li><a href="/index.html">홈</a></li>
+          <li>
+            <a href="/brand.html">브랜드</a>
+            <ul>
+              <li><a href="/brand.html#company-intro">회사소개</a></li>
+              <li><a href="/brand.html#ci">회사CI</a></li>
+              <li><a href="/brand.html#culture">기업문화</a></li>
+              <li><a href="/brand.html#sustainability">지속가능경영</a></li>
+              <li><a href="/brand.html#roadmap">로드맵</a></li>
+            </ul>
+          </li>
+          <li><a href="/left-sidebar.html">솔루션</a></li>
+          <li><a href="/right-sidebar.html">프로그램</a></li>
+          <li><a href="/two-sidebar.html">고객문의</a></li>
+          <li><a href="/no-sidebar.html">착소마켓</a></li>
+        </ul>
+      </nav>
+    </div>
 
-  <!-- Firebase SDK (v9 모듈) -->
-  <script type="module">
-    /***** 설정 *****/
-    const APP_ID = "survey-result"; // 레거시 fallback용 (artifacts 경로 쓸 때만)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
-      authDomain: "nbso-b7f41.firebaseapp.com",
-      projectId: "nbso-b7f41",
-      storageBucket: "nbso-b7f41.appspot.com",
-      messagingSenderId: "94203359555",
-      appId: "1:94203359555:web:07f9ee21d1291670363ff6",
-      measurementId: "G-YCWF8ENKC4"
-    };
+    <body>
+      <div id="page-wrapper">
+        <!-- 사이트 헤더 (기존 네비 그대로 필요하면 복붙해서 쓰세요) -->
+        <section id="main" class="wrapper style1" style="padding-top: 4.5em;">
+          <div class="container container-narrow">
 
-    const TYPE_MAP_URL = "/owner-survey/data/type-map.json?v=20250811";
+            <!-- 헤더: 유형 배지 + 이름 + 요약 -->
+            <div class="card">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                <div>
+                  <div id="type-pill" class="pill">유형 로딩중...</div>
+                  <h1 id="type-name" style="margin:.4rem 0 0; font-size:1.8rem;">—</h1>
+                  <div id="type-tagline" class="muted">—</div>
+                </div>
+                <div class="right">
+                  <button id="btn-generate" class="btn">솔루션 전략 생성</button>
+                  <button id="btn-copy" class="btn secondary">복사</button>
+                </div>
+              </div>
+            </div>
 
-    /***** Firebase 초기화 *****/
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    window.GEMINI_API_KEY = "AIzaSyCxxCblNa3Vl7ORu-eS2KgjFPE9ArYkMfM";
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+            <!-- 강점/단점 -->
+            <div class="grid grid-2">
+              <div class="card">
+                <div class="section-title">유형의 특징</div>
+                <div class="divider"></div>
+                <ul id="strengths" style="margin:0; padding-left:1.1rem;"></ul>
+              </div>
+              <div class="card">
+                <div class="section-title">단점</div>
+                <div class="divider"></div>
+                <ul id="weaknesses" style="margin:0; padding-left:1.1rem;"></ul>
+              </div>
+            </div>
 
-    async function ensureAnon() {
-      const cur = auth.currentUser;
-      if (cur) return cur;
-      return new Promise((resolve, reject) => {
-        const unsub = onAuthStateChanged(auth, (u) => { if (u) { unsub(); resolve(u); } });
-        signInAnonymously(auth).catch(reject);
-      });
-    }
+            <!-- 솔루션 전략 (Gemini) -->
+            <div class="card" id="ai-card">
+              <div class="section-title">상황 맞춤 솔루션 전략</div>
+              <div class="divider"></div>
+              <div id="ai-status" class="muted small">아직 생성 전입니다. 위의 <b>솔루션 전략 생성</b> 버튼을 눌러주세요.</div>
+              <div id="ai-output" class="codebox mono hide"></div>
+            </div>
+            <div id="ai-cta" class="cta-box hide">
+              <p>
+                안녕하세요, <b>착한소상공인지원마켓</b>입니다.<br>
+                처음 가게를 차리셨을때의 설레임을 저희는 알고 있습니다.<br>
+                최소한 지금보다는 상황이 더 나아지길 바라시면서 많은 돈과 시간을 투자하셨을거로 생각됩니다.<br>
+                하지만 현재 자영업자의 폐업률은 코로나때보다 더욱 많아진 상황이며,<br>
+                <b>월 소득</b>이 100만원 미만인 개인사업자가 사상 처음으로 900만명을 넘었습니다.<br>
+                그럼에도불구하고 아직도 상위 10%의 자영업자분들은 적게는 <b>10억원</b> 많게는 수십억원 이상의 매출을 유지하고있습니다.<br>
+                왜 이런 차이가 벌어질까요? 맛이없어서? 혹은 상권이 안좋아서? 여러분들의 잘못이 아닙니다.<br>
+                저희 착한소상공인지원마켓에서는 상권,고객층,업체분석 등을 통해 마케팅 및 홍보 전략을 세우고 직접 대행해 드리고 있습니다.<br>
+                저희의 솔루션의 목표는 한 가지 입니다. 바로 소상공인들의 <b>잃어버린 돈과 시간을 되찾아주는 것</b> 입니다.<br>
+                혼자서 고민하지 마세요. 저희가 당신의 가치를 더욱 빛나게 해드리겠습니다.<br>
+                더 자세한 상담을 원하시면 아래 버튼을 눌러 주세요.<br>
+              </p>
+              <a class="btn" href="/two-sidebar.html">문의하기</a>
+            </div>
 
-    function getUUID() {
-      const p = new URLSearchParams(location.search);
-      const u = p.get("uuid") || localStorage.getItem("surveyUUID");
-      return u || "";
-    }
+            <!-- 메타 -->
+            <div class="card small hide">
+              <div class="section-title">결과 정보</div>
+              <div class="divider"></div>
+              <div id="meta" class="muted">
+                UUID: <span id="meta-uuid">—</span> · 저장시각: <span id="meta-time">—</span><br />
+                스코어: <span id="meta-scores" class="mono">—</span>
+              </div>
+            </div>
 
-    async function fetchResult(uuid) {
-      const uid = auth.currentUser?.uid;
-      if (uid) {
-        const ref0 = doc(db, `users/${uid}/survey_results/${uuid}`);
-        const snap0 = await getDoc(ref0).catch(() => null);
-        if (snap0 && snap0.exists()) return { ref: ref0, snap: snap0, scope: "users" };
-      }
-      const refA = doc(db, `artifacts/${APP_ID}/public/data/survey_results/${uuid}`);
-      const snapA = await getDoc(refA).catch(() => null);
-      if (snapA && snapA.exists()) return { ref: refA, snap: snapA, scope: "artifacts" };
+          </div>
+        </section>
+      </div>
 
-      const refB = doc(db, `survey_results/${uuid}`);
-      const snapB = await getDoc(refB).catch(() => null);
-      if (snapB && snapB.exists()) return { ref: refB, snap: snapB, scope: "top" };
+      <!-- Firebase SDK (v9 모듈) -->
+      <script type="module">
+        /***** 설정 *****/
+        const APP_ID = "survey-result"; // 레거시 fallback용 (artifacts 경로 쓸 때만)
+        const firebaseConfig = {
+          apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+          authDomain: "nbso-b7f41.firebaseapp.com",
+          projectId: "nbso-b7f41",
+          storageBucket: "nbso-b7f41.appspot.com",
+          messagingSenderId: "94203359555",
+          appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+          measurementId: "G-YCWF8ENKC4"
+        };
 
-      throw new Error("결과 문서를 찾을 수 없습니다.");
-    }
+        const TYPE_MAP_URL = "/owner-survey/data/type-map.json?v=20250811";
 
-    /***** 타입 맵 로드 *****/
-    let TYPE_MAP = null;
-    async function loadTypeMap() {
-      try {
-        const cached = localStorage.getItem("typeMap:v1");
-        if (cached) TYPE_MAP = JSON.parse(cached);
-      } catch { }
-      try {
-        const res = await fetch(TYPE_MAP_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error("type-map fetch failed");
-        const json = await res.json();
-        if (json && typeof json === "object") {
-          TYPE_MAP = json;
-          try { localStorage.setItem("typeMap:v1", JSON.stringify(json)); } catch { }
+        /***** Firebase 초기화 *****/
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        window.GEMINI_API_KEY = "AIzaSyCxxCblNa3Vl7ORu-eS2KgjFPE9ArYkMfM";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        async function ensureAnon() {
+          const cur = auth.currentUser;
+          if (cur) return cur;
+          return new Promise((resolve, reject) => {
+            const unsub = onAuthStateChanged(auth, (u) => { if (u) { unsub(); resolve(u); } });
+            signInAnonymously(auth).catch(reject);
+          });
         }
-      } catch (e) {
-        if (!TYPE_MAP) {
-          console.warn("타입 맵 로드 실패, fallback 없음");
-          TYPE_MAP = {};
-        } else {
-          console.warn("타입 맵 네트워크 실패, 캐시 사용");
+
+        function getUUID() {
+          const p = new URLSearchParams(location.search);
+          const u = p.get("uuid") || localStorage.getItem("surveyUUID");
+          return u || "";
         }
-      }
-    }
-    function extractProfileFromResponses(responses) {
-      const rows = responses || [];
-      const find = (preds) => {
-        const hit = rows.find(r => preds.some(p => p((r?.question || "").trim())));
-        return (hit?.answer ?? "미입력") || "미입력";
-      };
 
-      return {
-        industry: find([q => q === "당신의 업종은 무엇인가요?", q => q.includes("업종")]),
-        avg_daily_sales: find([q => q === "하루 평균 매출은 얼마인가요?", q => q.includes("하루") && q.includes("매출")]),
-        region: find([q => q === "가게가 위치한 지역은?", q => q.includes("지역")]),
-        operating_period: find([q => q === "운영 기간은 얼마나 되었나요?", q => q.includes("운영 기간")]),
-      };
-    } // ← 여기서 함수가 끝납니다 (중요)
-
-    // ✅ 전역 스코프에 있어야 하는 함수들
-    function setStatus(text) {
-      const el = document.getElementById("ai-status");
-      if (el) el.textContent = text;
-    }
-    function showOutput(text) {
-      const out = document.getElementById("ai-output");
-      if (out) { out.textContent = text; out.classList.remove("hide"); }
-    }
-    function renderTypeCardWith(typeInfo, typeKey) {
-      const d = typeInfo || null;
-      const $pill = document.getElementById("type-pill");
-      const $name = document.getElementById("type-name");
-      const $tag = document.getElementById("type-tagline");
-      const $str = document.getElementById("strengths");
-      const $weak = document.getElementById("weaknesses");
-
-      if (!d) {
-        $pill.textContent = typeKey || "유형 미확정";
-        $name.textContent = "—";
-        $tag.textContent = "타입 데이터가 없습니다. (type-map.json 확인)";
-        $str.innerHTML = ""; $weak.innerHTML = "";
-        return;
-      }
-      $pill.textContent = typeKey;
-      $name.textContent = d.name || "—";
-      $tag.textContent = d.tagline || "";
-
-      $str.innerHTML = "";
-      (d.strengths || []).forEach(x => { const li = document.createElement("li"); li.textContent = x; $str.appendChild(li); });
-
-      $weak.innerHTML = "";
-      (d.weaknesses || []).forEach(x => { const li = document.createElement("li"); li.textContent = x; $weak.appendChild(li); });
-
-      try { $pill.setAttribute("data-type", typeKey); } catch { }
-    }
-
-    // === 축/사이드 계산 ===
-    function getAxisSides(typeKey = "") {
-      const t = String(typeKey || "").toUpperCase();
-      return {
-        SI: (t[0] === "S" ? "S" : "I"),
-        WT: (t[1] === "W" ? "W" : "T"),
-        LR: (t[2] === "L" ? "L" : "R"),
-        QE: (t[3] === "Q" ? "Q" : "E"),
-      };
-    }
-    const AXIS_TEXT = {
-      S: "매장 운영 효율 중심, 수치 기반 판단",
-      I: "매장 인력·관계 중심, 감정과 분위기 중시",
-      W: "신규 유입 선호(마케팅·SNS·이벤트 등)",
-      T: "단골 유지·입소문·신뢰 중심 운영",
-      L: "감정 억제, 매뉴얼·표준 절차 기반 응대",
-      R: "친화적, 감정 교류 중심 응대",
-      Q: "수치·분석·전략 중심 운영",
-      E: "감각·즉흥·현장 감각 중시 운영"
-    };
-    function buildFreePrompt(docData, typeKey, typeInfo) {
-      const p = extractProfileFromResponses(docData?.responses);
-      const sides = getAxisSides(typeKey); // 예: {SI:"S", WT:"W", LR:"L", QE:"Q"}
-
-      const lines = [];
-      lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
-      lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
-      lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
-      lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
-      lines.push("");
-
-      // ✅ 유형 축 설명(레전드) + 사용자의 측면 표시
-      lines.push("=== 유형 축 설명 ===");
-      lines.push(`S vs I: S=${AXIS_TEXT.S} / I=${AXIS_TEXT.I} · 사용자의 측면=${sides.SI}`);
-      lines.push(`W vs T: W=${AXIS_TEXT.W} / T=${AXIS_TEXT.T} · 사용자의 측면=${sides.WT}`);
-      lines.push(`L vs R: L=${AXIS_TEXT.L} / R=${AXIS_TEXT.R} · 사용자의 측면=${sides.LR}`);
-      lines.push(`Q vs E: Q=${AXIS_TEXT.Q} / E=${AXIS_TEXT.E} · 사용자의 측면=${sides.QE}`);
-      lines.push("");
-
-      // ✅ 사용자 핵심 정보
-      lines.push("=== 사용자 핵심 정보(설문) ===");
-      lines.push(`업종: ${p.industry}`);
-      lines.push(`하루 평균 매출: ${p.avg_daily_sales}`);
-      lines.push(`지역: ${p.region}`);
-      lines.push(`운영 기간: ${p.operating_period}`);
-      lines.push("");
-
-      // ✅ 응답 형식 안내 (단일 박스, 자유 형식)
-      lines.push("요구사항:");
-      lines.push("- 인사말 없이 바로 본론으로, 가장 추천하는 핵심 전략 '한 가지'만 제시하세요.");
-      lines.push("- 어떤 방식으로 실행하면, 어떤 근거(연구/통계 요지, 출처명 수준)를 생각해서,하나의 문장으로 매출을 대략 몇 % 기대할 수 있는지까지 알려줘");
-      lines.push("");
-
-      return lines.join("\n");
-    }
-    // JSON 파싱(관대하게)
-    function safeParseJSON(raw) {
-      if (!raw) return { ok: false, data: null, jsonText: "" };
-      const pick = (s) => {
-        // ```json ... ``` 또는 { ... } 블록 추출 시도
-        const code = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
-        if (code) return code[1];
-        const obj = s.match(/\{[\s\S]*\}$/m);
-        return obj ? obj[0] : s;
-      };
-      const cand = pick(raw);
-      try {
-        const data = JSON.parse(cand);
-        return { ok: true, data, jsonText: JSON.stringify(data, null, 2) };
-      } catch {
-        return { ok: false, data: null, jsonText: raw };
-      }
-    }
-
-    async function callGemini(prompt) {
-      if (window.GEMINI_ENDPOINT) {
-        const r = await fetch(window.GEMINI_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
-        if (!r.ok) throw new Error("서버 응답 실패");
-        return await r.text();
-      }
-      if (window.GEMINI_API_KEY) {
-        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(window.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-      }
-      throw new Error("Gemini 호출 설정이 없습니다. (GEMINI_ENDPOINT 또는 GEMINI_API_KEY)");
-    }
-
-    /** 메인 */
-    const uuid = getUUID();
-    document.getElementById("meta-uuid").textContent = uuid || "—";
-    document.getElementById("btn-copy").addEventListener("click", () => {
-      const t = document.getElementById("ai-output")?.textContent?.trim();
-      if (!t) { alert("복사할 내용이 없습니다."); return; }
-      navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
-    });
-    try {
-      await ensureAnon();
-      await loadTypeMap(); // 타입맵 먼저 로드
-      if (!uuid) throw new Error("uuid 파라미터가 없습니다.");
-
-      const { ref, snap } = await fetchResult(uuid);
-      const data = snap.data() || {};
-
-      const ts = data.timestamp?.toDate?.() || data.createdAt?.toDate?.() || null;
-      document.getElementById("meta-time").textContent = ts ? ts.toLocaleString() : "—";
-
-      const scores = data.finalScores || data.scores || data.score || null;
-      document.getElementById("meta-scores").textContent = scores ? JSON.stringify(scores) : "—";
-
-      // (선택) 메타 카드에 4가지 핵심 정보도 보여주기
-      const prof = extractProfileFromResponses(data?.responses);
-      document.getElementById("meta").insertAdjacentHTML(
-        "beforeend",
-        `<br/>업종: <b>${prof.industry}</b> · 하루 평균 매출: <b>${prof.avg_daily_sales}</b> · 지역: <b>${prof.region}</b> · 운영 기간: <b>${prof.operating_period}</b>`
-      );
-
-      // ✅ 파이어스토어의 유형을 1순위로 사용 (finalType → motiType → type)
-      let typeKey = String(data.finalType || data.motiType || data.type || "").toUpperCase();
-      if (!typeKey) {
-        throw new Error("문서에 유형(finalType/motiType/type)이 없습니다. 결과 저장 로직을 확인해주세요.");
-      }
-
-      // type-map.json에서 한 번만 꺼내서 고정(화면+프롬프트는 이 값만 사용)
-      const TYPE_INFO = Object.freeze(TYPE_MAP?.[typeKey] || null);
-
-      // ✅ 화면 렌더는 무조건 type-map.json 기준
-      renderTypeCardWith(TYPE_INFO, typeKey);
-
-      document.getElementById("btn-generate").addEventListener("click", async () => {
-        const btn = document.getElementById("btn-generate");
-        btn.disabled = true;
-        try {
-          setStatus("생성 중...");
-          const prompt = buildFreePrompt(data, typeKey, TYPE_INFO);
-          const raw = await callGemini(prompt);
-
-          // JSON이면 포맷해서, 아니면 그대로 보여주기
-          const parsed = safeParseJSON(raw);
-          const pretty = parsed.ok ? parsed.jsonText : (raw || "");
-          showOutput(pretty || "생성된 내용이 없습니다.");
-          setStatus("생성 완료");
-          document.getElementById("ai-cta")?.classList.remove("hide");
-
-          // (소유자일 때) Firestore 저장
-          const me = auth.currentUser?.uid || "";
-          if (data.ownerUid && me && data.ownerUid === me) {
-            await setDoc(ref, {
-              aiSolutionFree: parsed.ok ? parsed.data : { text: raw || "" },
-              aiGeneratedAt: serverTimestamp(),
-              aiParseStatus: parsed.ok ? "ok" : "fallback"
-            }, { merge: true });
+        async function fetchResult(uuid) {
+          const uid = auth.currentUser?.uid;
+          if (uid) {
+            const ref0 = doc(db, `users/${uid}/survey_results/${uuid}`);
+            const snap0 = await getDoc(ref0).catch(() => null);
+            if (snap0 && snap0.exists()) return { ref: ref0, snap: snap0, scope: "users" };
           }
-        } catch (err) {
-          setStatus("생성 실패: " + (err?.message || err));
-        } finally {
-          btn.disabled = false;
+          const refA = doc(db, `artifacts/${APP_ID}/public/data/survey_results/${uuid}`);
+          const snapA = await getDoc(refA).catch(() => null);
+          if (snapA && snapA.exists()) return { ref: refA, snap: snapA, scope: "artifacts" };
+
+          const refB = doc(db, `survey_results/${uuid}`);
+          const snapB = await getDoc(refB).catch(() => null);
+          if (snapB && snapB.exists()) return { ref: refB, snap: snapB, scope: "top" };
+
+          throw new Error("결과 문서를 찾을 수 없습니다.");
         }
-      });
 
-    } catch (e) {
-      document.getElementById("type-pill").textContent = "오류";
-      document.getElementById("type-name").textContent = "결과를 불러오지 못했습니다";
-      document.getElementById("type-tagline").textContent = e?.message || String(e);
-      document.getElementById("btn-generate").disabled = true;
-    }
+        /***** 타입 맵 로드 *****/
+        let TYPE_MAP = null;
+        async function loadTypeMap() {
+          try {
+            const cached = localStorage.getItem("typeMap:v1");
+            if (cached) TYPE_MAP = JSON.parse(cached);
+          } catch { }
+          try {
+            const res = await fetch(TYPE_MAP_URL, { cache: "no-store" });
+            if (!res.ok) throw new Error("type-map fetch failed");
+            const json = await res.json();
+            if (json && typeof json === "object") {
+              TYPE_MAP = json;
+              try { localStorage.setItem("typeMap:v1", JSON.stringify(json)); } catch { }
+            }
+          } catch (e) {
+            if (!TYPE_MAP) {
+              console.warn("타입 맵 로드 실패, fallback 없음");
+              TYPE_MAP = {};
+            } else {
+              console.warn("타입 맵 네트워크 실패, 캐시 사용");
+            }
+          }
+        }
+        function extractProfileFromResponses(responses) {
+          const rows = responses || [];
+          const find = (preds) => {
+            const hit = rows.find(r => preds.some(p => p((r?.question || "").trim())));
+            return (hit?.answer ?? "미입력") || "미입력";
+          };
 
-    // [교체 끝]
-  </script>
-</body>
+          return {
+            industry: find([q => q === "당신의 업종은 무엇인가요?", q => q.includes("업종")]),
+            avg_daily_sales: find([q => q === "하루 평균 매출은 얼마인가요?", q => q.includes("하루") && q.includes("매출")]),
+            region: find([q => q === "가게가 위치한 지역은?", q => q.includes("지역")]),
+            operating_period: find([q => q === "운영 기간은 얼마나 되었나요?", q => q.includes("운영 기간")]),
+          };
+        } // ← 여기서 함수가 끝납니다 (중요)
+
+        // ✅ 전역 스코프에 있어야 하는 함수들
+        function setStatus(text) {
+          const el = document.getElementById("ai-status");
+          if (el) el.textContent = text;
+        }
+        function showOutput(text) {
+          const out = document.getElementById("ai-output");
+          if (out) { out.textContent = text; out.classList.remove("hide"); }
+        }
+        function renderTypeCardWith(typeInfo, typeKey) {
+          const d = typeInfo || null;
+          const $pill = document.getElementById("type-pill");
+          const $name = document.getElementById("type-name");
+          const $tag = document.getElementById("type-tagline");
+          const $str = document.getElementById("strengths");
+          const $weak = document.getElementById("weaknesses");
+
+          if (!d) {
+            $pill.textContent = typeKey || "유형 미확정";
+            $name.textContent = "—";
+            $tag.textContent = "타입 데이터가 없습니다. (type-map.json 확인)";
+            $str.innerHTML = ""; $weak.innerHTML = "";
+            return;
+          }
+          $pill.textContent = typeKey;
+          $name.textContent = d.name || "—";
+          $tag.textContent = d.tagline || "";
+
+          $str.innerHTML = "";
+          (d.strengths || []).forEach(x => { const li = document.createElement("li"); li.textContent = x; $str.appendChild(li); });
+
+          $weak.innerHTML = "";
+          (d.weaknesses || []).forEach(x => { const li = document.createElement("li"); li.textContent = x; $weak.appendChild(li); });
+
+          try { $pill.setAttribute("data-type", typeKey); } catch { }
+        }
+
+        // === 축/사이드 계산 ===
+        function getAxisSides(typeKey = "") {
+          const t = String(typeKey || "").toUpperCase();
+          return {
+            SI: (t[0] === "S" ? "S" : "I"),
+            WT: (t[1] === "W" ? "W" : "T"),
+            LR: (t[2] === "L" ? "L" : "R"),
+            QE: (t[3] === "Q" ? "Q" : "E"),
+          };
+        }
+        const AXIS_TEXT = {
+          S: "매장 운영 효율 중심, 수치 기반 판단",
+          I: "매장 인력·관계 중심, 감정과 분위기 중시",
+          W: "신규 유입 선호(마케팅·SNS·이벤트 등)",
+          T: "단골 유지·입소문·신뢰 중심 운영",
+          L: "감정 억제, 매뉴얼·표준 절차 기반 응대",
+          R: "친화적, 감정 교류 중심 응대",
+          Q: "수치·분석·전략 중심 운영",
+          E: "감각·즉흥·현장 감각 중시 운영"
+        };
+        function buildFreePrompt(docData, typeKey, typeInfo) {
+          const p = extractProfileFromResponses(docData?.responses);
+          const sides = getAxisSides(typeKey); // 예: {SI:"S", WT:"W", LR:"L", QE:"Q"}
+
+          const lines = [];
+          lines.push("당신은 한국의 소상공인 컨설턴트입니다. 친절하고 실천 가능한 조언을 한국어로 제공합니다.");
+          lines.push(`사업자 MBTI 유형: ${typeKey} - ${typeInfo?.name || ""} (${typeInfo?.tagline || ""})`);
+          lines.push(`강점: ${(typeInfo?.strengths || []).join(", ")}`);
+          lines.push(`단점: ${(typeInfo?.weaknesses || []).join(", ")}`);
+          lines.push("");
+
+          // ✅ 유형 축 설명(레전드) + 사용자의 측면 표시
+          lines.push("=== 유형 축 설명 ===");
+          lines.push(`S vs I: S=${AXIS_TEXT.S} / I=${AXIS_TEXT.I} · 사용자의 측면=${sides.SI}`);
+          lines.push(`W vs T: W=${AXIS_TEXT.W} / T=${AXIS_TEXT.T} · 사용자의 측면=${sides.WT}`);
+          lines.push(`L vs R: L=${AXIS_TEXT.L} / R=${AXIS_TEXT.R} · 사용자의 측면=${sides.LR}`);
+          lines.push(`Q vs E: Q=${AXIS_TEXT.Q} / E=${AXIS_TEXT.E} · 사용자의 측면=${sides.QE}`);
+          lines.push("");
+
+          // ✅ 사용자 핵심 정보
+          lines.push("=== 사용자 핵심 정보(설문) ===");
+          lines.push(`업종: ${p.industry}`);
+          lines.push(`하루 평균 매출: ${p.avg_daily_sales}`);
+          lines.push(`지역: ${p.region}`);
+          lines.push(`운영 기간: ${p.operating_period}`);
+          lines.push("");
+
+          // ✅ 응답 형식 안내 (단일 박스, 자유 형식)
+          lines.push("요구사항:");
+          lines.push("- 인사말 없이 바로 본론으로, 가장 추천하는 핵심 전략 '한 가지'만 제시하세요.");
+          lines.push("- 어떤 방식으로 실행하면, 어떤 근거(연구/통계 요지, 출처명 수준)를 생각해서,하나의 문장으로 매출을 대략 몇 % 기대할 수 있는지까지 알려줘");
+          lines.push("");
+
+          return lines.join("\n");
+        }
+        // JSON 파싱(관대하게)
+        function safeParseJSON(raw) {
+          if (!raw) return { ok: false, data: null, jsonText: "" };
+          const pick = (s) => {
+            // ```json ... ``` 또는 { ... } 블록 추출 시도
+            const code = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+            if (code) return code[1];
+            const obj = s.match(/\{[\s\S]*\}$/m);
+            return obj ? obj[0] : s;
+          };
+          const cand = pick(raw);
+          try {
+            const data = JSON.parse(cand);
+            return { ok: true, data, jsonText: JSON.stringify(data, null, 2) };
+          } catch {
+            return { ok: false, data: null, jsonText: raw };
+          }
+        }
+
+        async function callGemini(prompt) {
+          if (window.GEMINI_ENDPOINT) {
+            const r = await fetch(window.GEMINI_ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ prompt })
+            });
+            if (!r.ok) throw new Error("서버 응답 실패");
+            return await r.text();
+          }
+          if (window.GEMINI_API_KEY) {
+            const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+            const genAI = new GoogleGenerativeAI(window.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            return result.response.text();
+          }
+          throw new Error("Gemini 호출 설정이 없습니다. (GEMINI_ENDPOINT 또는 GEMINI_API_KEY)");
+        }
+
+        /** 메인 */
+        const uuid = getUUID();
+        document.getElementById("meta-uuid").textContent = uuid || "—";
+        document.getElementById("btn-copy").addEventListener("click", () => {
+          const t = document.getElementById("ai-output")?.textContent?.trim();
+          if (!t) { alert("복사할 내용이 없습니다."); return; }
+          navigator.clipboard.writeText(t).then(() => alert("복사 완료"));
+        });
+        try {
+          await ensureAnon();
+          await loadTypeMap(); // 타입맵 먼저 로드
+          if (!uuid) throw new Error("uuid 파라미터가 없습니다.");
+
+          const { ref, snap } = await fetchResult(uuid);
+          const data = snap.data() || {};
+
+          const ts = data.timestamp?.toDate?.() || data.createdAt?.toDate?.() || null;
+          document.getElementById("meta-time").textContent = ts ? ts.toLocaleString() : "—";
+
+          const scores = data.finalScores || data.scores || data.score || null;
+          document.getElementById("meta-scores").textContent = scores ? JSON.stringify(scores) : "—";
+
+          // (선택) 메타 카드에 4가지 핵심 정보도 보여주기
+          const prof = extractProfileFromResponses(data?.responses);
+          document.getElementById("meta").insertAdjacentHTML(
+            "beforeend",
+            `<br/>업종: <b>${prof.industry}</b> · 하루 평균 매출: <b>${prof.avg_daily_sales}</b> · 지역: <b>${prof.region}</b> · 운영 기간: <b>${prof.operating_period}</b>`
+          );
+
+          // ✅ 파이어스토어의 유형을 1순위로 사용 (finalType → motiType → type)
+          let typeKey = String(data.finalType || data.motiType || data.type || "").toUpperCase();
+          if (!typeKey) {
+            throw new Error("문서에 유형(finalType/motiType/type)이 없습니다. 결과 저장 로직을 확인해주세요.");
+          }
+
+          // type-map.json에서 한 번만 꺼내서 고정(화면+프롬프트는 이 값만 사용)
+          const TYPE_INFO = Object.freeze(TYPE_MAP?.[typeKey] || null);
+
+          // ✅ 화면 렌더는 무조건 type-map.json 기준
+          renderTypeCardWith(TYPE_INFO, typeKey);
+
+          document.getElementById("btn-generate").addEventListener("click", async () => {
+            const btn = document.getElementById("btn-generate");
+            btn.disabled = true;
+            try {
+              setStatus("생성 중...");
+              const prompt = buildFreePrompt(data, typeKey, TYPE_INFO);
+              const raw = await callGemini(prompt);
+
+              // JSON이면 포맷해서, 아니면 그대로 보여주기
+              const parsed = safeParseJSON(raw);
+              const pretty = parsed.ok ? parsed.jsonText : (raw || "");
+              showOutput(pretty || "생성된 내용이 없습니다.");
+              setStatus("생성 완료");
+              document.getElementById("ai-cta")?.classList.remove("hide");
+
+              // (소유자일 때) Firestore 저장
+              const me = auth.currentUser?.uid || "";
+              if (data.ownerUid && me && data.ownerUid === me) {
+                await setDoc(ref, {
+                  aiSolutionFree: parsed.ok ? parsed.data : { text: raw || "" },
+                  aiGeneratedAt: serverTimestamp(),
+                  aiParseStatus: parsed.ok ? "ok" : "fallback"
+                }, { merge: true });
+              }
+            } catch (err) {
+              setStatus("생성 실패: " + (err?.message || err));
+            } finally {
+              btn.disabled = false;
+            }
+          });
+
+        } catch (e) {
+          document.getElementById("type-pill").textContent = "오류";
+          document.getElementById("type-name").textContent = "결과를 불러오지 못했습니다";
+          document.getElementById("type-tagline").textContent = e?.message || String(e);
+          document.getElementById("btn-generate").disabled = true;
+        }
+
+        // [교체 끝]
+      </script>
+    </body>
 
 </html>
