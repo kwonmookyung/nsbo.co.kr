@@ -426,7 +426,7 @@
                 localStorage.setItem('loginSource', 'result');
                 const m = location.pathname.match(/^(.*)\/owner-?survey\/.*$/i);
                 const basePath = m ? m[1] : ''; // 예: '', '/nbso'
-                const target = new URL(`${basePath}/mypage.html`, location.origin);
+                const target = new URL(`${basePath}/survey-result.html`, location.origin);
                 target.searchParams.set('uuid', surveyUUID);
                 window.location.href = target.href;
 
