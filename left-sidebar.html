@@ -62,7 +62,7 @@
 					<li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a>
 						<ul>
 							<li><a href="mypage.html">내 정보 보기</a></li>
-							<li><a href="my-survey-result.html">내 설문조사 결과 보기</a></li>
+							<li><a class="js-myresult-link" href="owner-survey/survey-result.html">내 설문조사 결과 보기</a></li>
 						</ul>
 					</li>
 					<li><a href="index.html">홈</a></li>
@@ -371,15 +371,6 @@
 			</div>
 		</section>
 	</div>
-
-
-	<!-- Scripts -->
-	<script src="assets/js/jquery.min.js"></script>
-	<script src="assets/js/jquery.dropotron.min.js"></script>
-	<script src="assets/js/browser.min.js"></script>
-	<script src="assets/js/breakpoints.min.js"></script>
-	<script src="assets/js/util.js"></script>
-	<script src="assets/js/main.js"></script>
 	<script type="module">
 		// ==== 배포 경로가 도메인 루트가 아닐 때만 설정 (예: '/nbso') ====
 		const SITE_BASE = window.__SITE_BASE_PATH || ""; // 필요시 window.__SITE_BASE_PATH = '/nbso';
@@ -482,6 +473,15 @@
 			setLinksHref(uuid);                   // 확보되면 링크에 반영
 		})();
 	</script>
+
+
+	<!-- Scripts -->
+	<script src="assets/js/jquery.min.js"></script>
+	<script src="assets/js/jquery.dropotron.min.js"></script>
+	<script src="assets/js/browser.min.js"></script>
+	<script src="assets/js/breakpoints.min.js"></script>
+	<script src="assets/js/util.js"></script>
+	<script src="assets/js/main.js"></script>
 </body>
 
 </html>
