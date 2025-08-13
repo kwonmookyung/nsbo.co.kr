@@ -301,13 +301,54 @@
         return null;
       }
     }
+    // 결과 페이지 경로(배포 경로에 맞게 수정하세요)
+    const SURVEY_RESULT_PATH = "/owner-survey/survey-result.html";
+    // 추가 ⬇︎ (SURVEY_RESULT_PATH에서 디렉터리만 추출)
+    const BASE_DIR = SURVEY_RESULT_PATH.replace(/\/[^\/]+$/, ""); // "/owner-survey"
+    const IMAGE_URL = `${location.origin}${BASE_DIR}/images/og_logo600.png`;
 
+    // 결과 링크 만들기
+    function buildResultUrl(uuid) {
+      const base = location.origin;
+      return `${base}${SURVEY_RESULT_PATH}?uuid=${encodeURIComponent(uuid)}`;
+    }
+
+    // 카카오톡(내 톡)으로 결과 보내기
+    async function sendTalkToMe(uuid) {
+      const url = buildResultUrl(uuid);
+
+      return new Promise((resolve, reject) => {
+        Kakao.API.request({
+          url: '/v2/api/talk/memo/default/send',
+          data: {
+            template_object: {
+              object_type: 'feed',
+              content: {
+                title: '사장님 맞춤 결과',
+                description: '버튼을 눌러 결과를 확인하세요.',
+                image_url: IMAGE_URL,            // ✅ 여기!
+                image_width: 600,                // (선택) 썸네일 사이즈 힌트
+                image_height: 600,
+                link: { web_url: url, mobile_web_url: url }
+              },
+              buttons: [
+                { title: '결과 보기', link: { web_url: url, mobile_web_url: url } }
+              ]
+            }
+          },
+          success: resolve,
+          fail: reject
+        });
+      });
+    }
     // 카카오로 결과 받기 (연동)
+    // 카카오로 결과 받기 (연동 + 내 톡으로 결과 링크 전송)
     window.submitResult = async function () {
       if (!isFirebaseReady) {
         alert('서버 연결 중입니다. 잠시 후 다시 시도해주세요.');
         return;
       }
+
       const surveyUUID = localStorage.getItem('surveyUUID');
       if (!surveyUUID) {
         alert('설문 결과 문서가 생성되지 않았습니다. 다시 시도해주세요.');
@@ -315,10 +356,12 @@
       }
 
       if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-        Kakao.init('cc58d703cacde86ff1976fd723a04854');
+        Kakao.init('cc58d703cacde86ff1976fd723a04854'); // JS 키
       }
 
       Kakao.Auth.login({
+        // talk_message 스코프가 있어야 '내 톡으로 보내기' 가능
+        scope: 'profile_nickname,account_email,talk_message',
         success: function () {
           Kakao.API.request({
             url: '/v2/user/me',
@@ -326,8 +369,7 @@
               try {
                 const kakaoId = res.id?.toString() || '';
                 const account = res.kakao_account || {};
-
-                // 설문 문서 업데이트
+                // 설문 문서 업데이트 (연동 마킹)
                 await updateDoc(
                   doc(db, `users/${userId}/survey_results/${surveyUUID}`),
                   {
@@ -336,11 +378,10 @@
                     kakaoUid: kakaoId,
                     kakaoEmail: account.email || null,
                     kakaoNickname: account.profile?.nickname || null,
-                    expiresAt: null // 연동되면 TTL 해제
+                    expiresAt: null
                   }
                 );
-
-                // 민감정보는 /users/{uid}/private/kakao 문서로 저장
+                // 민감정보는 private 문서에
                 await setDoc(
                   doc(db, `users/${userId}/private/kakao`),
                   {
@@ -357,27 +398,38 @@
                   { merge: true }
                 );
 
-                // success 페이지로 이동(기존 흐름 유지 원하면 사용)
-                localStorage.setItem('loginSource', 'result');
-                localStorage.setItem('surveyUUID', surveyUUID);
-                window.location.href = `/kakao-login-success.html?uuid=${encodeURIComponent(surveyUUID)}`;
+                // ✅ 내 톡으로 결과 링크 전송
+                try {
+                  await sendTalkToMe(surveyUUID);
+                  // 전송 성공 후 안내/리다이렉트
+                  localStorage.setItem('loginSource', 'result');
+                  window.location.href = `/kakao-login-success.html?uuid=${encodeURIComponent(surveyUUID)}`;
+                } catch (sendErr) {
+                  // 스코프 부족 등으로 실패 시 재동의 유도
+                  console.error('톡 전송 실패:', sendErr);
+                  if (sendErr?.code === -402) {
+                    alert('카카오톡 메시지 전송 권한 동의가 필요합니다. 다시 시도해주세요.');
+                  } else {
+                    alert('카카오톡 전송에 실패했습니다. 다시 시도해주세요.');
+                  }
+                }
               } catch (e) {
-                console.error('❌ 카카오 연동 중 오류:', e);
+                console.error('카카오 연동 중 오류:', e);
                 alert('카카오 연동 중 오류가 발생했습니다.');
               }
             },
             fail: function (e) {
-              console.error('❌ 사용자 정보 요청 실패:', e);
+              console.error('사용자 정보 요청 실패:', e);
               alert('사용자 정보 요청 실패');
             }
           });
         },
         fail: function (err) {
-          console.error('❌ 로그인 실패:', err);
+          console.error('로그인 실패:', err);
           alert('카카오 로그인 실패');
         }
       });
-    }
+    };
 
     // 시작
 
