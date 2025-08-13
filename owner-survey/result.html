@@ -326,7 +326,7 @@
 
       Kakao.Auth.login({
         // ✅ kakao-login.html 수준으로 수집 범위 확대
-        scope: 'profile_nickname,profile_image,account_email,gender,age_range,birthday,birthyear,phone_number',
+        scope: 'profile_nickname,profile_image,account_email,gender,age_range,birthday,phone_number',
         success: function () {
           Kakao.API.request({
             url: '/v2/user/me',
@@ -341,7 +341,6 @@
                 const gender = account?.gender ?? null;       // 'male' | 'female' | null
                 const ageRange = account?.age_range ?? null;    // 예: '20~29'
                 const birthday = account?.birthday ?? null;     // 'MMDD'
-                const birthyear = account?.birthyear ?? null;    // 'YYYY' (승인 필요)
                 const phoneNumber = account?.phone_number ?? null; // E.164 (승인 필요)
                 const profileImageUrl = profile?.profile_image_url
                   ?? res?.properties?.profile_image
@@ -360,7 +359,6 @@
                     gender,
                     ageRange,
                     birthday,
-                    birthyear,
                     phoneNumber,
                     profileImageUrl,
                     lastLoginAt: serverTimestamp(),
@@ -379,7 +377,6 @@
                     gender,
                     age_range: ageRange,
                     birthday,
-                    birthyear,
                     phone_number: phoneNumber,
                     profile_image: profileImageUrl,
                     connectedAt: serverTimestamp(),
