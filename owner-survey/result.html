@@ -325,56 +325,114 @@
       }
 
       Kakao.Auth.login({
-        scope: 'profile_nickname,account_email', // ← talk_message 제거
+        // ✅ kakao-login.html 수준으로 수집 범위 확대
+        scope: 'profile_nickname,profile_image,account_email,gender,age_range,birthday,birthyear,phone_number',
         success: function () {
           Kakao.API.request({
             url: '/v2/user/me',
             success: async function (res) {
               try {
-                const kakaoId = res.id?.toString() || '';
-                const account = res.kakao_account || {};
+                const kakaoId = String(res?.id ?? '');
+                const account = res?.kakao_account ?? {};
+                const profile = account?.profile ?? {};
 
-                // 설문 문서에 카카오 연동 표시
+                const nickname = profile?.nickname ?? res?.properties?.nickname ?? null;
+                const email = account?.email ?? null;
+                const gender = account?.gender ?? null;       // 'male' | 'female' | null
+                const ageRange = account?.age_range ?? null;    // 예: '20~29'
+                const birthday = account?.birthday ?? null;     // 'MMDD'
+                const birthyear = account?.birthyear ?? null;    // 'YYYY' (승인 필요)
+                const phoneNumber = account?.phone_number ?? null; // E.164 (승인 필요)
+                const profileImageUrl = profile?.profile_image_url
+                  ?? res?.properties?.profile_image
+                  ?? profile?.thumbnail_image_url
+                  ?? null;
+
+                // ✅ 저장 1) 중앙 프로필: users/{uid}
+                await setDoc(
+                  doc(db, `users/${userId}`),
+                  {
+                    uid: userId,
+                    provider: 'kakao',
+                    kakaoId,
+                    displayName: nickname || '',
+                    email,
+                    gender,
+                    ageRange,
+                    birthday,
+                    birthyear,
+                    phoneNumber,
+                    profileImageUrl,
+                    lastLoginAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                  },
+                  { merge: true }
+                );
+
+                // ✅ 저장 2) 민감/원본 스냅샷: users/{uid}/private/kakao
+                await setDoc(
+                  doc(db, `users/${userId}/private/kakao`),
+                  {
+                    kakaoId,
+                    email,
+                    nickname,
+                    gender,
+                    age_range: ageRange,
+                    birthday,
+                    birthyear,
+                    phone_number: phoneNumber,
+                    profile_image: profileImageUrl,
+                    connectedAt: serverTimestamp(),
+                    // 원본 전체(안전하게 직렬화해서 저장)
+                    raw: JSON.parse(JSON.stringify(res))
+                  },
+                  { merge: true }
+                );
+
+                // (선택) 동의한 scope 목록 기록
+                try {
+                  Kakao.API.request({
+                    url: '/v2/user/scopes',
+                    success: async function (scopesRes) {
+                      const consentedScopes = (scopesRes?.scopes ?? [])
+                        .filter(s => s?.agreed)
+                        .map(s => s?.id);
+                      await setDoc(
+                        doc(db, `users/${userId}`),
+                        { consentedScopes, scopesUpdatedAt: serverTimestamp() },
+                        { merge: true }
+                      );
+                    },
+                    fail: function (e) {
+                      console.warn('동의 scope 조회 실패(무시 가능):', e);
+                    }
+                  });
+                } catch (e) {
+                  console.warn('동의 scope 조회 생략/실패:', e);
+                }
+
+                // ✅ 저장 3) 설문 결과 문서에 링크/표시 정보 갱신(역할 분리 유지)
                 await updateDoc(
                   doc(db, `users/${userId}/survey_results/${surveyUUID}`),
                   {
                     kakaoLinked: true,
                     linkedAt: serverTimestamp(),
                     kakaoUid: kakaoId,
-                    kakaoEmail: account.email || null,
-                    kakaoNickname: account.profile?.nickname || null,
+                    kakaoEmail: email || null,
+                    kakaoNickname: nickname || null,
+                    // TTL 해제
                     expiresAt: null
                   }
                 );
 
-                // 민감정보는 private 문서에 저장
-                await setDoc(
-                  doc(db, `users/${userId}/private/kakao`),
-                  {
-                    kakaoId,
-                    email: account.email || null,
-                    nickname: account.profile?.nickname || null,
-                    gender: account.gender || null,
-                    age_range: account.age_range || null,
-                    birthday: account.birthday || null,
-                    phone_number: account.phone_number || null,
-                    profile_image: account.profile?.profile_image_url || null,
-                    connectedAt: serverTimestamp()
-                  },
-                  { merge: true }
-                );
-
-                // ✅ 마이페이지로 바로 이동
+                // ✅ 이동
                 localStorage.setItem('loginSource', 'result');
-
-                // /.../owner-survey/... 앞의 경로만 남김 (owner-sruvey 오타도 허용)
                 const m = location.pathname.match(/^(.*)\/owner-?survey\/.*$/i);
-                const basePath = m ? m[1] : '';  // 예: '', '/nbso' 등
-
+                const basePath = m ? m[1] : ''; // 예: '', '/nbso'
                 const target = new URL(`${basePath}/mypage.html`, location.origin);
                 target.searchParams.set('uuid', surveyUUID);
-
                 window.location.href = target.href;
+
               } catch (e) {
                 console.error('카카오 연동 중 오류:', e);
                 alert('카카오 연동 중 오류가 발생했습니다.');
