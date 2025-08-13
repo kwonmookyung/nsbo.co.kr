@@ -7,25 +7,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="assets/css/main.css" />
 	<style>
-		.cta-box {
-			background: #f7fafc;
-			border: 1px solid #e6eef5;
-			border-radius: 12px;
-			padding: 1rem;
-			margin-top: .8rem;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: .8rem;
-			flex-wrap: wrap;
-		}
-
-		.cta-box p {
-			margin: 0;
-			color: #333;
-			font-size: .95rem;
-		}
-
 		@media screen and (max-width: 1024px) {
 			#header {
 				display: none !important;
@@ -78,7 +59,12 @@
 			<nav id="nav">
 				<ul>
 					<li><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
-					<li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a></li>
+					<li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a>
+						<ul>
+							<li><a href="mypage.html">내 정보 보기</a></li>
+							<li><a href="my-survey-result.html">내 설문조사 결과 보기</a></li>
+						</ul>
+					</li>
 					<li><a href="index.html">홈</a></li>
 					<li>
 						<a href="brand.html">브랜드</a>
