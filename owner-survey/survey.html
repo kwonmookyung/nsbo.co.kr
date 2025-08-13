@@ -2,6 +2,24 @@
 <html lang="ko">
 
 <head>
+  <style>
+    fieldset {
+      margin-bottom: 16px;
+      padding: 12px;
+    }
+
+    .option-label {
+      display: block;
+      margin: 6px 0;
+    }
+
+    /* 미응답 문항 강조 */
+    .need-answer {
+      border: 2px solid #ef4444;
+      background: #fff7f7;
+      border-radius: 8px;
+    }
+  </style>
    
   <meta charset="UTF-8" />
    
@@ -85,8 +103,9 @@
 
       questions.forEach((q, index) => {
         const fieldset = document.createElement("fieldset");
+        fieldset.dataset.q = String(q.globalIndex);   // ← 추가: 문항 식별용
+        fieldset.id = `q-${q.globalIndex}`;           // ← 추가: 스크롤 포커스용
         const legend = document.createElement("legend");
-        // ✅ 질문만 굵게 표시 (이전 제안 반영)
         legend.innerHTML = `${index + 1}. <strong>${q.question}</strong>`;
         fieldset.appendChild(legend);
 
@@ -96,8 +115,7 @@
 
           const input = document.createElement("input");
           input.type = "radio";
-          // ✅ input name에 globalIndex 사용
-          input.name = `question-${q.globalIndex}`;
+          input.name = `question-${q.globalIndex}`;  // 기존 유지
           input.value = optIndex;
           input.required = true;
 
@@ -110,7 +128,32 @@
       });
       currentStageQuestions = questions;
     }
+    function validateAllAnswered() {
+      const form = document.getElementById("survey-form");
+      let firstMissing = null;
 
+      currentStageQuestions.forEach(q => {
+        const fs = form.querySelector(`fieldset[data-q="${q.globalIndex}"]`);
+        const checked = form.querySelector(`input[name="question-${q.globalIndex}"]:checked`);
+        if (!checked) {
+          fs?.classList.add("need-answer");
+          if (!firstMissing) firstMissing = fs;
+        } else {
+          fs?.classList.remove("need-answer");
+        }
+      });
+
+      if (firstMissing) {
+        firstMissing.scrollIntoView({ behavior: "smooth", block: "start" });
+        alert("모든 문항을 선택해주세요.");
+        return false;
+      }
+      return true;
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
     // ✅ saveAnswersAndScore 함수 수정: globalIndex를 사용하여 답변 저장
     function saveAnswersAndScore() {
       const form = document.getElementById("survey-form");
@@ -148,39 +191,57 @@
       }
       return selected;
     }
+    document.getElementById("survey-form").addEventListener("change", (e) => {
+      if (e.target.name?.startsWith("question-")) {
+        const fs = e.target.closest("fieldset");
+        fs && fs.classList.remove("need-answer");
+      }
+    });
 
     document.getElementById("next-button").addEventListener("click", (e) => {
       e.preventDefault();
 
-      // 첫 단계에서는 답변 저장을 하지 않습니다 (소개 화면이므로)
-      if (stage > 0) {
-        saveAnswersAndScore();
+      // 소개 단계(질문 없음)
+      if (stage === 0) {
+        stage = 1;
+        document.getElementById("intro-content").style.display = 'none';
+        renderQuestions(questionsData.common);
+        scrollToTop();
+        return;
       }
-      stage++;
 
-      switch (stage) {
-        case 1:
-          // ✅ 첫 질문 단계로 넘어갈 때 intro-content를 숨깁니다.
-          document.getElementById("intro-content").style.display = 'none';
-          renderQuestions(questionsData.common);
-          break;
-        case 2:
-          renderQuestions(questionsData.stage1);
-          break;
-        case 3:
-          stage2Target = getClosestPair();
-          renderQuestions(questionsData.stage2[stage2Target]);
-          break;
-        case 4:
-          stage3Target = getClosestPair();
-          renderQuestions(questionsData.stage3[stage3Target]);
-          break;
-        case 5:
-          localStorage.setItem("surveyAnswers", JSON.stringify(answers));
-          localStorage.setItem("surveyScores", JSON.stringify(scores));
-          localStorage.setItem("savedAt", Date.now());
-          window.location.href = "result.html";
-          break;
+      // 질문 단계: 미응답 있으면 중단
+      if (!validateAllAnswered()) return;
+
+      // 응답 저장 후 다음 단계 이동
+      saveAnswersAndScore();
+
+      if (stage === 1) {
+        stage = 2;
+        renderQuestions(questionsData.stage1);
+        scrollToTop();
+        return;
+      }
+      if (stage === 2) {
+        stage2Target = getClosestPair();
+        stage = 3;
+        renderQuestions(questionsData.stage2[stage2Target]);
+        scrollToTop();
+        return;
+      }
+      if (stage === 3) {
+        stage3Target = getClosestPair();
+        stage = 4;
+        renderQuestions(questionsData.stage3[stage3Target]);
+        scrollToTop();
+        return;
+      }
+      if (stage === 4) {
+        // 마지막: 로컬 저장 후 결과 페이지로 이동
+        localStorage.setItem("surveyAnswers", JSON.stringify(answers));
+        localStorage.setItem("surveyScores", JSON.stringify(scores));
+        localStorage.setItem("savedAt", Date.now());
+        window.location.href = "result.html";
       }
     });
 
