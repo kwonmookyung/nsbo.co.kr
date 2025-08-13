@@ -290,7 +290,7 @@
                         <a href="mypage.html" style="font-size:.85em;">마이페이지</a>
                         <ul>
                             <li><a href="mypage.html">내 정보 보기</a></li>
-                            <li><a href="owner-survey/survey-result.html">내 설문조사 결과 보기</a></li>
+                            <li><a class="js-myresult-link" href="owner-survey/survey-result.html">내 설문조사 결과 보기</a></li>
                         </ul>
                     </li>
                     <li><a href="index.html">홈</a></li>
@@ -532,6 +532,108 @@
                 console.error(e);
             }
         });
+    </script>
+    <script type="module">
+        // ==== 배포 경로가 도메인 루트가 아닐 때만 설정 (예: '/nbso') ====
+        const SITE_BASE = window.__SITE_BASE_PATH || ""; // 필요시 window.__SITE_BASE_PATH = '/nbso';
+
+        // ==== 결과 페이지(서브폴더) 경로 ====
+        const RESULT_PATH = "owner-survey/survey-result.html";
+
+        // 헤더의 "내 설문조사 결과 보기" 링크들 모두 가져오기
+        const links = Array.from(document.querySelectorAll('a.js-myresult-link'));
+        if (!links.length) { /* 메뉴가 없는 페이지는 무시 */ }
+
+        // 링크 href를 일괄 반영
+        function setLinksHref(uuid) {
+            for (const a of links) {
+                const dest = new URL(`${SITE_BASE}/${RESULT_PATH}`, `${location.origin}/`);
+                if (uuid) dest.searchParams.set("uuid", uuid);
+                // 절대경로(href)로 넣되, 같은 도메인 내에서만 사용
+                a.href = dest.pathname + dest.search;
+            }
+        }
+
+        // uuid 우선순위: ① URL ?uuid ② localStorage ③ Firestore 최신 1건
+        async function resolveUUID() {
+            // ① URL 파라미터
+            const u1 = new URLSearchParams(location.search).get("uuid");
+            if (u1) return u1;
+
+            // ② localStorage
+            const u2 = localStorage.getItem("surveyUUID");
+            if (u2) return u2;
+
+            // ③ Firestore 조회(로그인된 경우)
+            try {
+                const [{ initializeApp }, { getAuth, onAuthStateChanged }, { getFirestore, collection, query, orderBy, limit, getDocs }] =
+                    await Promise.all([
+                        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+                        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
+                        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
+                    ]);
+
+                // 사이트 공용 Firebase 설정 그대로 사용
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
+                    authDomain: "nbso-b7f41.firebaseapp.com",
+                    projectId: "nbso-b7f41",
+                    storageBucket: "nbso-b7f41.appspot.com",
+                    messagingSenderId: "94203359555",
+                    appId: "1:94203359555:web:07f9ee21d1291670363ff6",
+                    measurementId: "G-YCWF8ENKC4"
+                };
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+
+                // onAuthStateChanged를 Promise 형태로 대기
+                const user = await new Promise((resolve) => {
+                    onAuthStateChanged(auth, (u) => resolve(u), { onlyOnce: true });
+                });
+                if (!user) return null;
+
+                const db = getFirestore(app);
+                const q = query(
+                    collection(db, `users/${user.uid}/survey_results`),
+                    orderBy("createdAt", "desc"),
+                    limit(1)
+                );
+                const snap = await getDocs(q);
+                if (snap.empty) return null;
+
+                const latestUUID = snap.docs[0].id;
+                localStorage.setItem("surveyUUID", latestUUID);
+                return latestUUID;
+            } catch (e) {
+                console.warn("uuid 조회 실패(무시):", e);
+                return null;
+            }
+        }
+
+        // 링크 클릭 시, uuid 없으면 마이페이지로 유도
+        function attachFallbackClick() {
+            for (const a of links) {
+                a.addEventListener("click", (e) => {
+                    // 이미 uuid 붙었으면 그대로 통과
+                    if (a.href.includes("uuid=")) return;
+
+                    e.preventDefault();
+                    // 로그인/연동/설문 안내하기 좋은 곳으로 이동
+                    const my = new URL(`${SITE_BASE}/mypage.html`, `${location.origin}/`);
+                    // 돌아올 때 uuid 붙여줄 수 있도록 현재 페이지도 전달 가능(옵션)
+                    my.searchParams.set("from", location.pathname + location.search);
+                    location.href = my.pathname + my.search;
+                });
+            }
+        }
+
+        // 실행
+        (async () => {
+            attachFallbackClick();                // 먼저 클릭 대안 연결
+            const uuid = await resolveUUID();     // uuid 확보 시도
+            setLinksHref(uuid);                   // 확보되면 링크에 반영
+        })();
     </script>
 </body>
 
