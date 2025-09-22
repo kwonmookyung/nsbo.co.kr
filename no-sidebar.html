@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <link rel="stylesheet" href="assets/css/main.css" />
   <style>
+    /* ===== 기존 반응형 헤더 동작 유지 ===== */
     @media screen and (max-width: 1024px) {
       #header {
         display: none !important;
@@ -30,16 +31,89 @@
     }
 
     @media screen and (max-width: 1024px) {
-
-      /* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
       img[src*="logo.jpg"] {
         display: none !important;
       }
 
       .wrapper.style1 {
         margin-top: 10px !important;
-        /* 필요시 더 줄여도 됩니다 */
       }
+    }
+
+    /* ===== 견적 폼 전용 스타일(콘텐츠만 추가) ===== */
+    .quote-card {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+      padding: 1.75rem;
+    }
+
+    .quote-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 980px) {
+      .quote-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field label {
+      display: block;
+      font-weight: 700;
+      margin: 0 0 .4rem;
+    }
+
+    .select {
+      position: relative;
+    }
+
+    .helper {
+      color: #666;
+      font-size: .95rem;
+      margin-top: .25rem;
+    }
+
+    .result-box {
+      margin-top: 1.25rem;
+      background: #f7f8fb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      line-height: 1.6;
+    }
+
+    .price {
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+
+    .muted {
+      color: #6b7280;
+    }
+
+    .actions {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .actions .button.secondary {
+      background: #eef2ff;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .status {
+      margin-top: .5rem;
+      color: #ef4444;
+      font-weight: 600;
+      display: none;
     }
   </style>
 </head>
@@ -47,7 +121,11 @@
 <body class="is-preload">
   <div id="page-wrapper">
 
-    <!-- Header -->
+    <!-- (모바일 전용 간단 로고) 필요 시 주석 해제
+    <a id="mobile-logo" href="index.html" style="display:none">착소마켓</a>
+    -->
+
+    <!-- Header: 기존 상단 고정 네비 그대로 유지 -->
     <div id="header"
       style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 2em; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
       <div>
@@ -84,28 +162,77 @@
       </nav>
     </div>
 
-    <!-- Main -->
+    <!-- Main: 콘텐츠만 교체 (상단 여백은 고정 헤더 높이 고려) -->
     <section class="wrapper style1" style="margin-top: 100px;">
       <div class="container">
         <header class="major">
-          <h2>착소마켓 오픈 준비 중</h2>
-          <p>고객과 소상공인이 직접 연결되는 착한 쇼핑 플랫폼</p>
+          <h2>무료 견적 받기</h2>
+          <p class="muted">대분류 → 중분류 → 소분류를 선택하면, 즉시 예상 견적을 계산해 드립니다.</p>
         </header>
 
-        <div style="text-align: center;">
-          <img src="images/comingsoon.jpg" alt="착소마켓 오픈 예정"
-            style="max-width: 100%; height: auto; margin-bottom: 2em;" />
-          <h3>현재 마켓 플랫폼을 열심히 준비하고 있어요!</h3>
-          <p>착소마켓은 소상공인의 제품을 소비자에게 직접 연결하는 마켓입니다.<br>
-            오픈과 함께 더 많은 가치를 전해드릴 수 있도록 준비하고 있으니<br>
-            조금만 기다려 주세요.</p>
-          <p><strong>정식 오픈 일정은 추후 공지 예정입니다.</strong></p>
-          <a href="two-sidebar.html" class="button">문의하기</a>
+        <div class="quote-card" role="form" aria-labelledby="quote-title">
+          <h3 id="quote-title" style="margin-top:0">분류를 선택해 주세요</h3>
+
+          <div class="quote-grid">
+            <!-- 대분류 -->
+            <div class="field">
+              <label for="catA">대분류</label>
+              <div class="select">
+                <select id="catA" aria-label="대분류 선택">
+                  <option value="" selected disabled>선택하세요 (A ~ G)</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
+                  <option value="F">F</option>
+                  <option value="G">G</option>
+                </select>
+              </div>
+              <p class="helper">대분류를 선택하면 중분류가 활성화됩니다.</p>
+            </div>
+
+            <!-- 중분류 -->
+            <div class="field">
+              <label for="catB">중분류</label>
+              <div class="select">
+                <select id="catB" aria-label="중분류 선택" disabled>
+                  <option value="" selected disabled>대분류를 먼저 선택하세요</option>
+                </select>
+              </div>
+              <p class="helper">예: A 선택 시 A-1 ~ A-5</p>
+            </div>
+
+            <!-- 소분류 -->
+            <div class="field">
+              <label for="catC">소분류</label>
+              <div class="select">
+                <select id="catC" aria-label="소분류 선택" disabled>
+                  <option value="" selected disabled>중분류를 먼저 선택하세요</option>
+                </select>
+              </div>
+              <p class="helper">예: A-1 선택 시 A-1-1 ~ A-1-5</p>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a id="btn-quote" class="button primary">무료 견적 받기</a>
+            <a id="btn-reset" class="button secondary">초기화</a>
+          </div>
+          <div id="status" class="status">필수 항목을 모두 선택해 주세요.</div>
+
+          <div id="result" class="result-box" style="display:none">
+            <div class="muted">선택 경로</div>
+            <div id="selectedPath" style="font-weight:700; margin:.25rem 0 .75rem"></div>
+            <div class="muted">예상 견적</div>
+            <div class="price" id="price">-</div>
+            <div class="muted" style="margin-top:.5rem">* 안내 금액은 기본 옵션 기준의 예상가입니다. 실제 상황에 따라 변동될 수 있습니다.</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Footer: 기존 정보 유지 -->
     <footer id="footer">
       <div class="container">
         <section>
@@ -129,45 +256,130 @@
 
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts: 템플릿 기본 스크립트 유지 -->
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/jquery.dropotron.min.js"></script>
   <script src="assets/js/browser.min.js"></script>
   <script src="assets/js/breakpoints.min.js"></script>
   <script src="assets/js/util.js"></script>
   <script src="assets/js/main.js"></script>
+
+  <!-- 견적 계산 스크립트 (내용만 추가) -->
   <script type="module">
-    // ==== 배포 경로가 도메인 루트가 아닐 때만 설정 (예: '/nbso') ====
-    const SITE_BASE = window.__SITE_BASE_PATH || ""; // 필요시 window.__SITE_BASE_PATH = '/nbso';
+    // ====== 공통 유틸 ======
+    const fmtKRW = (n) => n.toLocaleString('ko-KR') + '원';
 
-    // ==== 결과 페이지(서브폴더) 경로 ====
+    // ====== 요소 참조 ======
+    const catA = document.getElementById('catA');
+    const catB = document.getElementById('catB');
+    const catC = document.getElementById('catC');
+
+    const btnQuote = document.getElementById('btn-quote');
+    const btnReset = document.getElementById('btn-reset');
+
+    const boxResult = document.getElementById('result');
+    const elPath = document.getElementById('selectedPath');
+    const elPrice = document.getElementById('price');
+    const elStatus = document.getElementById('status');
+
+    // ====== 중/소분류 옵션 생성 ======
+    function setOptions(select, values, placeholder) {
+      select.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = placeholder;
+      opt0.disabled = true; opt0.selected = true;
+      select.appendChild(opt0);
+      values.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        select.appendChild(opt);
+      });
+    }
+
+    function range(n) { return Array.from({ length: n }, (_, i) => i + 1); }
+
+    // 대분류 변경 → 중분류(A-1 ~ A-5 등)
+    catA.addEventListener('change', () => {
+      const a = catA.value; // 'A'~'G'
+      if (!a) return;
+      const mids = range(5).map(i => `${a}-${i}`);
+      setOptions(catB, mids, '중분류 선택');
+      catB.disabled = false;
+      // 소분류 초기화
+      setOptions(catC, [], '중분류를 먼저 선택하세요');
+      catC.disabled = true;
+      boxResult.style.display = 'none';
+      elStatus.style.display = 'none';
+    });
+
+    // 중분류 변경 → 소분류(A-1-1 ~ A-1-5 등)
+    catB.addEventListener('change', () => {
+      const b = catB.value; // 'A-1' 형태
+      if (!b) return;
+      const subs = range(5).map(i => `${b}-${i}`);
+      setOptions(catC, subs, '소분류 선택');
+      catC.disabled = false;
+      boxResult.style.display = 'none';
+      elStatus.style.display = 'none';
+    });
+
+    // ====== 가격 계산 로직 ======
+    // 규칙: A-1-1 = 1,000원부터 시작, 선택이 1 증가할 때마다 1,000원씩 증가
+    // 전체 조합 수: 7(대) * 5(중) * 5(소) = 175 → G-5-5가 175,000원
+    function calcPrice(a, b, c) {
+      // a: 'A'~'G', b: 'A-1'~'G-5', c: 'A-1-1'~
+      const idxA = a.charCodeAt(0) - 'A'.charCodeAt(0); // 0~6
+      const mid = Number(b.split('-')[1]); // 1~5 → 0~4
+      const sub = Number(c.split('-')[2]); // 1~5 → 0~4
+      const n = idxA * 25 + (mid - 1) * 5 + (sub - 1) + 1; // 1~175
+      return n * 1000;
+    }
+
+    // ====== 견적 버튼 ======
+    btnQuote.addEventListener('click', () => {
+      const a = catA.value, b = catB.value, c = catC.value;
+      if (!a || !b || !c) {
+        elStatus.style.display = 'block';
+        boxResult.style.display = 'none';
+        return;
+      }
+      elStatus.style.display = 'none';
+      const price = calcPrice(a, b, c);
+      elPath.textContent = `${c}`; // 최종 선택 경로 표기(예: A-1-3)
+      elPrice.textContent = fmtKRW(price);
+      boxResult.style.display = 'block';
+    });
+
+    // ====== 초기화 버튼 ======
+    btnReset.addEventListener('click', () => {
+      catA.value = '';
+      setOptions(catB, [], '대분류를 먼저 선택하세요');
+      catB.disabled = true;
+      setOptions(catC, [], '중분류를 먼저 선택하세요');
+      catC.disabled = true;
+      boxResult.style.display = 'none';
+      elStatus.style.display = 'none';
+    });
+  </script>
+
+  <!-- 기존: 설문 결과 링크용 UUID 처리 스크립트 유지 -->
+  <script type="module">
+    const SITE_BASE = window.__SITE_BASE_PATH || "";
     const RESULT_PATH = "owner-survey/survey-result.html";
-
-    // 헤더의 "내 설문조사 결과 보기" 링크들 모두 가져오기
     const links = Array.from(document.querySelectorAll('a.js-myresult-link'));
-    if (!links.length) { /* 메뉴가 없는 페이지는 무시 */ }
-
-    // 링크 href를 일괄 반영
     function setLinksHref(uuid) {
       for (const a of links) {
         const dest = new URL(`${SITE_BASE}/${RESULT_PATH}`, `${location.origin}/`);
         if (uuid) dest.searchParams.set("uuid", uuid);
-        // 절대경로(href)로 넣되, 같은 도메인 내에서만 사용
         a.href = dest.pathname + dest.search;
       }
     }
-
-    // uuid 우선순위: ① URL ?uuid ② localStorage ③ Firestore 최신 1건
     async function resolveUUID() {
-      // ① URL 파라미터
       const u1 = new URLSearchParams(location.search).get("uuid");
       if (u1) return u1;
-
-      // ② localStorage
       const u2 = localStorage.getItem("surveyUUID");
       if (u2) return u2;
-
-      // ③ Firestore 조회(로그인된 경우)
       try {
         const [{ initializeApp }, { getAuth, onAuthStateChanged }, { getFirestore, collection, query, orderBy, limit, getDocs }] =
           await Promise.all([
@@ -175,8 +387,6 @@
             import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
             import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"),
           ]);
-
-        // 사이트 공용 Firebase 설정 그대로 사용
         const firebaseConfig = {
           apiKey: "AIzaSyDhL9qWkfXRskWCwYh7E1E901luw1MvIK4",
           authDomain: "nbso-b7f41.firebaseapp.com",
@@ -186,25 +396,14 @@
           appId: "1:94203359555:web:07f9ee21d1291670363ff6",
           measurementId: "G-YCWF8ENKC4"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-
-        // onAuthStateChanged를 Promise 형태로 대기
-        const user = await new Promise((resolve) => {
-          onAuthStateChanged(auth, (u) => resolve(u), { onlyOnce: true });
-        });
+        const user = await new Promise((resolve) => { onAuthStateChanged(auth, (u) => resolve(u)); });
         if (!user) return null;
-
         const db = getFirestore(app);
-        const q = query(
-          collection(db, `users/${user.uid}/survey_results`),
-          orderBy("createdAt", "desc"),
-          limit(1)
-        );
+        const q = query(collection(db, `users/${user.uid}/survey_results`), orderBy("createdAt", "desc"), limit(1));
         const snap = await getDocs(q);
         if (snap.empty) return null;
-
         const latestUUID = snap.docs[0].id;
         localStorage.setItem("surveyUUID", latestUUID);
         return latestUUID;
@@ -213,29 +412,21 @@
         return null;
       }
     }
-
-    // 링크 클릭 시, uuid 없으면 마이페이지로 유도
     function attachFallbackClick() {
       for (const a of links) {
         a.addEventListener("click", (e) => {
-          // 이미 uuid 붙었으면 그대로 통과
           if (a.href.includes("uuid=")) return;
-
           e.preventDefault();
-          // 로그인/연동/설문 안내하기 좋은 곳으로 이동
           const my = new URL(`${SITE_BASE}/mypage.html`, `${location.origin}/`);
-          // 돌아올 때 uuid 붙여줄 수 있도록 현재 페이지도 전달 가능(옵션)
           my.searchParams.set("from", location.pathname + location.search);
           location.href = my.pathname + my.search;
         });
       }
     }
-
-    // 실행
     (async () => {
-      attachFallbackClick();                // 먼저 클릭 대안 연결
-      const uuid = await resolveUUID();     // uuid 확보 시도
-      setLinksHref(uuid);                   // 확보되면 링크에 반영
+      attachFallbackClick();
+      const uuid = await resolveUUID();
+      setLinksHref(uuid);
     })();
   </script>
 </body>
