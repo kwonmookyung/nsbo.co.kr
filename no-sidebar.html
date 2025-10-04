@@ -221,23 +221,23 @@
             <div class="field">
               <label for="cat1">1단계 (대분류)</label>
               <div class="select">
-                <select id="cat1" aria-label="1단계 선택">
+                <select id="cat1" aria-label="공간 유형">
                   <option value="" selected disabled>선택하세요 (A~E)</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D">D</option>
-                  <option value="E">E</option>
+                  <option value="외식">A</option>
+                  <option value="매장">B</option>
+                  <option value="사무실">C</option>
+                  <option value="학원">D</option>
+                  <option value="병원">E</option>
                 </select>
               </div>
-              <p class="helper">1단계를 선택하면 2단계가 활성화됩니다.</p>
+              <p class="helper">공간유형을 선택하면 다음단계가 활성화됩니다.</p>
             </div>
 
             <div class="field">
               <label for="cat2">2단계</label>
               <div class="select">
-                <select id="cat2" aria-label="2단계 선택" disabled>
-                  <option value="" selected disabled>1단계를 먼저 선택하세요</option>
+                <select id="cat2" aria-label="서비스 유형" disabled>
+                  <option value="" selected disabled>공간유형을 먼저 선택하세요</option>
                 </select>
               </div>
             </div>
@@ -245,8 +245,8 @@
             <div class="field">
               <label for="cat3">3단계</label>
               <div class="select">
-                <select id="cat3" aria-label="3단계 선택" disabled>
-                  <option value="" selected disabled>2단계를 먼저 선택하세요</option>
+                <select id="cat3" aria-label="분류1" disabled>
+                  <option value="" selected disabled>서비스유형을 먼저 선택하세요</option>
                 </select>
               </div>
             </div>
@@ -254,8 +254,8 @@
             <div class="field">
               <label for="cat4">4단계</label>
               <div class="select">
-                <select id="cat4" aria-label="4단계 선택" disabled>
-                  <option value="" selected disabled>3단계를 먼저 선택하세요</option>
+                <select id="cat4" aria-label="분류2" disabled>
+                  <option value="" selected disabled>분류1을 먼저 선택하세요</option>
                 </select>
               </div>
             </div>
@@ -263,11 +263,11 @@
             <div class="field">
               <label for="cat5">5단계</label>
               <div class="select">
-                <select id="cat5" aria-label="5단계 선택" disabled>
-                  <option value="" selected disabled>4단계를 먼저 선택하세요</option>
+                <select id="cat5" aria-label="분류3" disabled>
+                  <option value="" selected disabled>분류2를 먼저 선택하세요</option>
                 </select>
               </div>
-              <p class="helper">마지막 단계(리프)를 선택하면 가격이 표시됩니다.</p>
+              <p class="helper">마지막 단계를 선택하면 가격이 표시됩니다.</p>
             </div>
           </div>
           <!-- ▲▲ 여기까지 5단계 UI ▲▲ -->
