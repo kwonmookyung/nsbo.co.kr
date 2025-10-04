@@ -14,8 +14,7 @@
       --ink: #111827;
       --muted: #6b7280;
       --line: #e5e7eb;
-      --brand: #111827;
-      /* 포인트 컬러(버튼/포커스) */
+      --brand: #111827; /* 포인트 컬러(버튼/포커스) */
       --brand-weak: #eef2ff;
       --ok: #16a34a;
       --err: #dc2626;
@@ -25,17 +24,13 @@
       --focus: 0 0 0 3px rgba(17, 24, 39, .15);
     }
 
-    html,
-    body {
+    html, body {
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, Arial, sans-serif;
     }
 
     /* ===== 기존 반응형 헤더 동작 유지 ===== */
     @media screen and (max-width: 1024px) {
-      #header {
-        display: none !important;
-      }
-
+      #header { display: none !important; }
       #mobile-logo {
         display: block !important;
         position: fixed;
@@ -54,19 +49,12 @@
     }
 
     @media screen and (max-width: 1024px) {
-      img[src*="logo.jpg"] {
-        display: none !important;
-      }
-
-      .wrapper.style1 {
-        margin-top: 10px !important;
-      }
+      img[src*="logo.jpg"] { display: none !important; }
+      .wrapper.style1 { margin-top: 10px !important; }
     }
 
     /* ===== 카드 & 폼 ===== */
-    body {
-      background: var(--bg);
-    }
+    body { background: var(--bg); }
 
     .quote-card {
       max-width: 960px;
@@ -78,29 +66,16 @@
       border: 1px solid rgba(17, 24, 39, .03);
     }
 
-    #quote-title {
-      font-weight: 800;
-      letter-spacing: -.01em;
-    }
+    #quote-title { font-weight: 800; letter-spacing: -.01em; }
 
     .quote-grid {
       display: grid;
       gap: 1rem;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      /* 5단계 */
+      grid-template-columns: repeat(5, minmax(0, 1fr)); /* 5단계 */
     }
 
-    @media (max-width: 1100px) {
-      .quote-grid {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .quote-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    @media (max-width: 1100px) { .quote-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    @media (max-width: 980px)  { .quote-grid { grid-template-columns: 1fr; } }
 
     .field label {
       font-size: .92rem;
@@ -127,11 +102,7 @@
       transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
     }
 
-    .select select:disabled {
-      background-color: #f9fafb;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
+    .select select:disabled { background-color: #f9fafb; color: #9ca3af; cursor: not-allowed; }
 
     .select select:hover:not(:disabled),
     .quote-inquiry .field input:hover,
@@ -149,11 +120,7 @@
       border-color: var(--brand);
     }
 
-    .helper {
-      color: var(--muted);
-      font-size: .9rem;
-      margin-top: .4rem;
-    }
+    .helper { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
 
     /* 결과 */
     .result-box {
@@ -165,15 +132,8 @@
       line-height: 1.6;
     }
 
-    .price {
-      font-size: 1.8rem;
-      font-weight: 900;
-      letter-spacing: -.01em;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
+    .price { font-size: 1.8rem; font-weight: 900; letter-spacing: -.01em; }
+    .muted { color: var(--muted); }
 
     /* 버튼 */
     .actions {
@@ -195,34 +155,13 @@
       transition: transform .06s ease, box-shadow .15s ease, background .15s ease;
     }
 
-    .actions .button.primary {
-      background: var(--brand);
-      color: #fff;
-    }
-
-    .actions .button.primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(17, 24, 39, .18);
-    }
-
-    .actions .button.secondary {
-      background: #fff;
-      color: var(--ink);
-      border: 1px solid var(--line);
-    }
-
-    .actions .button.secondary:hover {
-      background: #f8fafc;
-      transform: translateY(-1px);
-    }
+    .actions .button.primary { background: var(--brand); color: #fff; }
+    .actions .button.primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(17, 24, 39, .18); }
+    .actions .button.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    .actions .button.secondary:hover { background: #f8fafc; transform: translateY(-1px); }
 
     /* 상태/토스트 */
-    .status {
-      margin-top: .6rem;
-      color: var(--err);
-      font-weight: 700;
-      display: none;
-    }
+    .status { margin-top: .6rem; color: var(--err); font-weight: 700; display: none; }
 
     .toast {
       margin-top: .9rem;
@@ -231,50 +170,18 @@
       border: 1px solid var(--line);
       display: none;
     }
-
-    .toast.ok {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      color: #166534;
-    }
-
-    .toast.err {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #991b1b;
-    }
+    .toast.ok  { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .toast.err { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
 
     /* 문의 섹션 */
-    .quote-inquiry {
-      margin-top: 1.25rem;
-      display: none;
-    }
-
-    .quote-inquiry .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .quote-inquiry .grid .full {
-      grid-column: 1 / -1;
-    }
-
-    @media (max-width:980px) {
-      .quote-inquiry .grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    .quote-inquiry { margin-top: 1.25rem; display: none; }
+    .quote-inquiry .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .quote-inquiry .grid .full { grid-column: 1 / -1; }
+    @media (max-width:980px) { .quote-inquiry .grid { grid-template-columns: 1fr; } }
 
     /* 섹션 제목 정리 */
-    .wrapper.style1 header.major h2 {
-      font-weight: 900;
-      letter-spacing: -.02em;
-    }
-
-    .wrapper.style1 header.major p.muted {
-      margin-top: .4rem;
-    }
+    .wrapper.style1 header.major h2 { font-weight: 900; letter-spacing: -.02em; }
+    .wrapper.style1 header.major p.muted { margin-top: .4rem; }
   </style>
 </head>
 
@@ -474,16 +381,8 @@
 
   <script type="module">
     // Firebase 모듈 로드
-    import {
-      initializeApp,
-      getApps
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     // Firebase 설정
     const firebaseConfig = {
@@ -528,7 +427,7 @@
     const btnClearInquiry = $('btn-clear-inquiry');
     const inquiryToast = $('inquiryToast');
 
-    // JSON 소스 매핑 (필요 시 경로만 교체)
+    // JSON 소스 매핑
     const DATA_SOURCES = {
       A: '/data/A_data.json',
       B: '/data/B_data.json',
@@ -537,7 +436,7 @@
       E: '/data/E_data.json',
     };
 
-    // 공통 옵션 세팅
+    // 공통 옵션 세팅 (✔ 라벨 저장 추가)
     const setOptions = (sel, items, placeholder) => {
       sel.innerHTML = '';
       const opt0 = document.createElement('option');
@@ -549,6 +448,7 @@
         const opt = document.createElement('option');
         opt.value = it.code || it.value || it.id;
         opt.textContent = it.name || it.label || it.content || it.code;
+        opt.dataset.label = opt.textContent; // ✅ 라벨 저장
         if (it.price || it.price_range) {
           opt.dataset.price = it.price || it.price_range;
         }
@@ -556,7 +456,7 @@
       }
     };
 
-    // 다양한 스키마(A/B/C/D/E)를 공통 트리 {code,name,price?,children[]}로 정규화
+    // 공통 트리 노드
     const node = (code, name, price, children = []) => ({ code, name, price, children });
 
     function normalizeA(raw, letter) {
@@ -670,7 +570,12 @@
     // 트리 상태
     let currentTree = null;
 
-    // 선택 상태/경로 계산 헬퍼 (★ 추가)
+    // ✅ 라벨 헬퍼
+    const getLabel = (sel) =>
+      sel?.selectedOptions?.[0]?.dataset?.label ||
+      sel?.selectedOptions?.[0]?.textContent || '';
+
+    // 선택 상태/경로 계산 헬퍼 (텍스트 경로 namePath 사용)
     function getSelectionState() {
       const top = cat1.value;
       const s2 = cat2.value || '';
@@ -685,11 +590,19 @@
         (lastSel === cat3 && !cat4.disabled) ||
         (lastSel === cat4 && !cat5.disabled);
 
-      const codes = [top].concat([s2, s3, s4, s5].filter(Boolean));
-      const pathText = codes.join(' > ');
+      // ✔ 라벨 경로
+      const labels = [
+        getLabel(cat1),
+        getLabel(cat2),
+        getLabel(cat3),
+        getLabel(cat4),
+        getLabel(cat5),
+      ].filter(Boolean);
+      const namePath = labels.join(' > ');
+
       const priceStr = lastSel?.selectedOptions?.[0]?.dataset?.price || '';
 
-      return { top, s2, s3, s4, s5, lastSel, needMore, pathText, priceStr };
+      return { top, s2, s3, s4, s5, lastSel, needMore, namePath, priceStr };
     }
 
     // 1단계
@@ -763,9 +676,9 @@
       elStatus.style.display = 'none';
     });
 
-    // "무료 견적 받기" → 버튼을 눌러야만 결과 표시 (★ 변경)
+    // "무료 견적 받기" → 버튼을 눌러야만 결과 표시
     btnQuote.addEventListener('click', () => {
-      const { top, s2, needMore, pathText, priceStr } = getSelectionState();
+      const { top, s2, needMore, namePath, priceStr } = getSelectionState();
 
       // 최소 1~2단계 선택 확인
       if (!top || !s2) {
@@ -785,9 +698,9 @@
         return;
       }
 
-      // 리프 선택 완료 → 여기서만 결과 표시
+      // 리프 선택 완료 → 여기서만 결과 표시 (텍스트 경로)
       elStatus.style.display = 'none';
-      elPath.textContent = pathText;
+      elPath.textContent = namePath;                  // ✅ 라벨 경로 사용
       elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
       boxResult.style.display = 'block';
       inquirySection.style.display = 'block';
@@ -852,23 +765,10 @@
 
       try {
         const doc = {
-          // 아래 s1~s5, codePath/namePath 등은 기존 코드 호환을 유지하기 위해 남겨둔 필드입니다.
-          // (필요 시 별도 로직에서 값을 채워 사용하세요)
-          category1: s1?.code || null,
-          category2: s2?.code || null,
-          category3: s3?.code || null,
-          category4: s4?.code || null,
-          category5: s5?.code || null,
-          categoryPath: codePath,
-
-          category1Text: s1?.name || null,
-          category2Text: s2?.name || null,
-          category3Text: s3?.name || null,
-          category4Text: s4?.name || null,
-          category5Text: s5?.name || null,
-          categoryNamePath: namePath,
-
+          // (필요하면 선택 경로 라벨도 저장 가능)
+          selectedPathText: elPath.textContent || null,
           price: elPrice.textContent || null,
+
           name: name,
           phone: digitsPhone,
           address: inqAddress.value.trim() || null,
