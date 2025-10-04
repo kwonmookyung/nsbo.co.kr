@@ -327,7 +327,7 @@
         <div class="quote-card" role="form" aria-labelledby="quote-title">
           <h3 id="quote-title" style="margin-top:0">분류를 선택해 주세요</h3>
 
-          <!-- ▼▼ 기존 3단계 셀렉트 → 5단계 셀렉트로 교체 ▼▼ -->
+          <!-- ▼▼ 5단계 셀렉트 ▼▼ -->
           <div class="quote-grid">
             <div class="field">
               <label for="cat1">1단계 (대분류)</label>
@@ -378,7 +378,7 @@
                   <option value="" selected disabled>4단계를 먼저 선택하세요</option>
                 </select>
               </div>
-              <p class="helper">마지막 단계(리프)를 선택하면 가격이 표시됩니다.</p>
+              <p class="helper">마지막 단계(리프)를 선택해도 바로 표시는 하지 않고, 아래 버튼을 눌러 결과를 확인합니다.</p>
             </div>
           </div>
           <!-- ▲▲ 여기까지 5단계 UI ▲▲ -->
@@ -560,7 +560,6 @@
     const node = (code, name, price, children = []) => ({ code, name, price, children });
 
     function normalizeA(raw, letter) {
-      // 예시 스키마: {공간유형:{A:{name, services:{A-1:{name, cats1:{A-1-1:{name, price} ...}, cats2, cats3}}}}}
       const rootA = raw?.['공간유형']?.[letter];
       const root = node(letter, rootA?.name || letter);
       const services = rootA?.services || {};
@@ -569,7 +568,6 @@
         const pushCats = (parent, cats) => {
           for (const [k, v] of Object.entries(cats || {})) {
             const n = node(k, v?.name || k, v?.price || v?.price_range || '');
-            // 하위 cats*가 더 있으면 중간 노드로 처리
             if (v?.cats1 || v?.cats2 || v?.cats3) {
               n.price = '';
               if (v?.cats1) pushCats(n, v.cats1);
@@ -590,7 +588,6 @@
     }
 
     function normalizeBLike(raw, letter) {
-      // 예시 스키마: { [letter]: { content, subcategories:{ code:{ content,name, price/price_range, subcategories:{...}}}}}
       const top = raw?.[letter];
       const build = (code, obj) => {
         const nm = obj?.name || obj?.content || code;
@@ -610,7 +607,6 @@
     }
 
     function normalizeE(raw) {
-      // 예시 스키마: { code:'E', name:'...', children:[...] } (각 child 동일 형태)
       const build = (obj) => {
         const n = node(obj.code, obj.name, obj.price || obj.price_range || '');
         const ch = obj.children || [];
@@ -674,6 +670,28 @@
     // 트리 상태
     let currentTree = null;
 
+    // 선택 상태/경로 계산 헬퍼 (★ 추가)
+    function getSelectionState() {
+      const top = cat1.value;
+      const s2 = cat2.value || '';
+      const s3 = cat3.value || '';
+      const s4 = cat4.value || '';
+      const s5 = cat5.value || '';
+
+      const lastSel = s5 ? cat5 : s4 ? cat4 : s3 ? cat3 : s2 ? cat2 : null;
+
+      const needMore =
+        (lastSel === cat2 && !cat3.disabled) ||
+        (lastSel === cat3 && !cat4.disabled) ||
+        (lastSel === cat4 && !cat5.disabled);
+
+      const codes = [top].concat([s2, s3, s4, s5].filter(Boolean));
+      const pathText = codes.join(' > ');
+      const priceStr = lastSel?.selectedOptions?.[0]?.dataset?.price || '';
+
+      return { top, s2, s3, s4, s5, lastSel, needMore, pathText, priceStr };
+    }
+
     // 1단계
     cat1.addEventListener('change', async () => {
       try {
@@ -682,7 +700,6 @@
         if (!top) return;
         currentTree = await loadTopData(top);
 
-        // 2단계 = root.children (top 노드 자체 포함돼 있을 수 있어 codes=[top]로 walk)
         const { children } = walk(currentTree, []);
         setOptions(cat2, children, '2단계 선택');
         cat2.disabled = false;
@@ -702,15 +719,10 @@
       if (children.length) {
         setOptions(cat3, children, '3단계 선택');
         cat3.disabled = false;
-      } else {
-        // 2단계가 리프
-        const sel = cat2.selectedOptions[0];
-        const priceStr = sel?.dataset?.price || '';
-        elPath.textContent = [top, s2].join(' > ');
-        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
-        boxResult.style.display = 'block';
-        inquirySection.style.display = 'block';
       }
+      // 즉시 결과 표시 안 함
+      boxResult.style.display = 'none';
+      inquirySection.style.display = 'none';
     });
 
     // 3단계
@@ -722,15 +734,10 @@
       if (children.length) {
         setOptions(cat4, children, '4단계 선택');
         cat4.disabled = false;
-      } else {
-        // 3단계가 리프
-        const sel = cat3.selectedOptions[0];
-        const priceStr = sel?.dataset?.price || '';
-        elPath.textContent = [top, s2, s3].join(' > ');
-        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
-        boxResult.style.display = 'block';
-        inquirySection.style.display = 'block';
       }
+      // 즉시 결과 표시 안 함
+      boxResult.style.display = 'none';
+      inquirySection.style.display = 'none';
     });
 
     // 4단계
@@ -742,46 +749,48 @@
       if (children.length) {
         setOptions(cat5, children, '5단계 선택');
         cat5.disabled = false;
-      } else {
-        // 4단계가 리프
-        const sel = cat4.selectedOptions[0];
-        const priceStr = sel?.dataset?.price || '';
-        elPath.textContent = [top, s2, s3, s4].join(' > ');
-        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
-        boxResult.style.display = 'block';
-        inquirySection.style.display = 'block';
       }
+      // 즉시 결과 표시 안 함
+      boxResult.style.display = 'none';
+      inquirySection.style.display = 'none';
     });
 
     // 5단계
     cat5.addEventListener('change', () => {
-      const top = cat1.value, s2 = cat2.value, s3 = cat3.value, s4 = cat4.value, s5 = cat5.value;
-      if (!top || !s2 || !s3 || !s4 || !s5) return;
-      const sel = cat5.selectedOptions[0];
-      const priceStr = sel?.dataset?.price || '';
-      elPath.textContent = [top, s2, s3, s4, s5].join(' > ');
-      elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
-      boxResult.style.display = 'block';
-      inquirySection.style.display = 'block';
+      // 선택만 하고선 아무 것도 표시하지 않음 (버튼으로만 표시)
+      boxResult.style.display = 'none';
+      inquirySection.style.display = 'none';
+      elStatus.style.display = 'none';
     });
 
-    // "무료 견적 받기" → 필수 선택 확인(리프 선택 시 이미 결과 노출됨)
+    // "무료 견적 받기" → 버튼을 눌러야만 결과 표시 (★ 변경)
     btnQuote.addEventListener('click', () => {
-      const ok =
-        !!cat1.value &&
-        !!cat2.value &&
-        !!cat3.value &&
-        (!!cat4.value) &&
-        (!!cat5.value || cat5.disabled); // 4단계 리프 케이스 허용
-      if (!ok) {
-        elStatus.textContent = '필수 단계를 모두 선택해 주세요.';
+      const { top, s2, needMore, pathText, priceStr } = getSelectionState();
+
+      // 최소 1~2단계 선택 확인
+      if (!top || !s2) {
+        elStatus.textContent = '1단계와 2단계를 먼저 선택해 주세요.';
         elStatus.style.display = 'block';
         boxResult.style.display = 'none';
         inquirySection.style.display = 'none';
-      } else {
-        elStatus.style.display = 'none';
-        // 결과는 각 change 핸들러에서 이미 노출됨
+        return;
       }
+
+      // 더 선택할 단계가 남아있음
+      if (needMore) {
+        elStatus.textContent = '다음 단계를 계속 선택해 주세요.';
+        elStatus.style.display = 'block';
+        boxResult.style.display = 'none';
+        inquirySection.style.display = 'none';
+        return;
+      }
+
+      // 리프 선택 완료 → 여기서만 결과 표시
+      elStatus.style.display = 'none';
+      elPath.textContent = pathText;
+      elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
+      boxResult.style.display = 'block';
+      inquirySection.style.display = 'block';
     });
 
     // 초기화
@@ -811,13 +820,11 @@
       const rawPhone = inqPhone.value.trim();
       const email = inqEmail.value.trim();
 
-      // 1) 숫자만 추출 (하이픈/공백/괄호 등 제거)
-      const digitsPhone = rawPhone.replace(/\D/g, ''); // 예: "010-1234 5678" -> "01012345678"
-
-      // 2) 길이 검사 (KR: 9~11자리 허용. 02지역번호 유선 9~10, 휴대폰 10~11)
+      // 1) 숫자만 추출
+      const digitsPhone = rawPhone.replace(/\D/g, '');
+      // 2) 길이 검사
       const isValidPhone = digitsPhone.length >= 9 && digitsPhone.length <= 11;
-
-      // 이메일 검사는 기존처럼 (TLD 길이 확장)
+      // 이메일 정규식
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
       if (!name || !digitsPhone) {
@@ -843,10 +850,10 @@
       btnSendInquiry.disabled = true;
       inquiryToast.style.display = 'none';
 
-
       try {
         const doc = {
-          // 기존 코드(호환 유지)
+          // 아래 s1~s5, codePath/namePath 등은 기존 코드 호환을 유지하기 위해 남겨둔 필드입니다.
+          // (필요 시 별도 로직에서 값을 채워 사용하세요)
           category1: s1?.code || null,
           category2: s2?.code || null,
           category3: s3?.code || null,
@@ -854,7 +861,6 @@
           category5: s5?.code || null,
           categoryPath: codePath,
 
-          // ✅ 추가: 텍스트(라벨) 저장
           category1Text: s1?.name || null,
           category2Text: s2?.name || null,
           category3Text: s3?.name || null,
@@ -862,12 +868,8 @@
           category5Text: s5?.name || null,
           categoryNamePath: namePath,
 
-          // (옵션) 구조화된 배열도 함께 저장하면 후처리 편해요
-          // categories: selectedList,  // 주석 해제 시 [{code,name}, ...] 형태로 저장
-
-          price: elPrice.textContent || null, // 화면 표시 가격 그대로
+          price: elPrice.textContent || null,
           name: name,
-          // 3) 저장은 하이픈 없이 '숫자만'으로
           phone: digitsPhone,
           address: inqAddress.value.trim() || null,
           email: email || null,
