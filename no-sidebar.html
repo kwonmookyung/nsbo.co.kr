@@ -697,21 +697,27 @@
     // ====== 문의 저장: 유효성 검사, 로딩 상태, 자동 초기화 포함 ======
     btnSendInquiry.addEventListener('click', async () => {
       const name = inqName.value.trim();
-      const phone = inqPhone.value.trim();
+      const rawPhone = inqPhone.value.trim();
       const email = inqEmail.value.trim();
 
-      const phoneRegex = /^\d{2,3}-\d{3,4}-\d{4}$/;
+      // 1) 숫자만 추출 (하이픈/공백/괄호 등 제거)
+      const digitsPhone = rawPhone.replace(/\D/g, ''); // 예: "010-1234 5678" -> "01012345678"
+
+      // 2) 길이 검사 (KR: 9~11자리 허용. 02지역번호 유선 9~10, 휴대폰 10~11)
+      const isValidPhone = digitsPhone.length >= 9 && digitsPhone.length <= 11;
+
+      // 이메일 검사는 기존처럼 (TLD 길이 확장)
       const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-      if (!name || !phone) {
+      if (!name || !digitsPhone) {
         inquiryToast.className = 'toast err';
         inquiryToast.textContent = '이름과 전화번호는 필수 입력 항목입니다.';
         inquiryToast.style.display = 'block';
         return;
       }
-      if (!phoneRegex.test(phone)) {
+      if (!isValidPhone) {
         inquiryToast.className = 'toast err';
-        inquiryToast.textContent = "유효한 전화번호 형식이 아닙니다 (예: 010-1234-5678)";
+        inquiryToast.textContent = "전화번호는 숫자만 9~11자리로 입력해 주세요 (예: 01012345678)";
         inquiryToast.style.display = 'block';
         return;
       }
@@ -722,25 +728,10 @@
         return;
       }
 
-      // ▼ 단계별 선택값/라벨 추출 유틸
-      const pick = (sel) =>
-        (sel && !sel.disabled && sel.value)
-          ? { code: sel.value, name: sel.selectedOptions[0].textContent.trim() }
-          : null;
-
-      const s1 = pick(cat1);
-      const s2 = pick(cat2);
-      const s3 = pick(cat3);
-      const s4 = pick(cat4);
-      const s5 = pick(cat5);
-
-      const selectedList = [s1, s2, s3, s4, s5].filter(Boolean);
-      const codePath = selectedList.map(x => x.code).join(' > ') || null;
-      const namePath = selectedList.map(x => x.name).join(' > ') || null;
-
       btnSendInquiry.textContent = '전송 중...';
       btnSendInquiry.disabled = true;
       inquiryToast.style.display = 'none';
+
 
       try {
         const doc = {
@@ -765,7 +756,8 @@
 
           price: elPrice.textContent || null, // 화면 표시 가격 그대로
           name: name,
-          phone: phone,
+          // 3) 저장은 하이픈 없이 '숫자만'으로
+          phone: digitsPhone,
           address: inqAddress.value.trim() || null,
           email: email || null,
           preferredTime: inqTime.value || null,
@@ -775,15 +767,12 @@
         };
 
         await addDoc(collection(db, 'inquiries'), doc);
-
         inquiryToast.className = 'toast ok';
         inquiryToast.textContent = '접수되었습니다. 빠르게 확인 후 연락드리겠습니다.';
         inquiryToast.style.display = 'block';
 
-        // 성공 시 폼 초기화
         [inqName, inqPhone, inqAddress, inqEmail, inqMemo].forEach(i => i.value = '');
         inqTime.value = '';
-
       } catch (e) {
         console.error(e);
         inquiryToast.className = 'toast err';
