@@ -52,7 +52,7 @@
 
     .quote-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr; /* 5단계에 맞춰 확장 */
       gap: 1rem;
     }
 
@@ -209,50 +209,67 @@
       <div class="container">
         <header class="major">
           <h2>무료 견적 받기</h2>
-          <p class="muted">대분류 → 중분류 → 소분류를 선택하면, 즉시 예상 견적을 계산해 드립니다.</p>
+          <p class="muted">1단계 → 2단계 → 3단계 → 4단계 → 5단계를 선택하면, 즉시 예상 견적을 보여드립니다.</p>
         </header>
 
         <div class="quote-card" role="form" aria-labelledby="quote-title">
           <h3 id="quote-title" style="margin-top:0">분류를 선택해 주세요</h3>
 
+          <!-- ▼▼ 기존 3단계 셀렉트 → 5단계 셀렉트로 교체 ▼▼ -->
           <div class="quote-grid">
             <div class="field">
-              <label for="catA">대분류</label>
+              <label for="cat1">1단계 (대분류)</label>
               <div class="select">
-                <select id="catA" aria-label="대분류 선택">
-                  <option value="" selected disabled>선택하세요 (A ~ G)</option>
+                <select id="cat1" aria-label="1단계 선택">
+                  <option value="" selected disabled>선택하세요 (A~E)</option>
                   <option value="A">A</option>
                   <option value="B">B</option>
                   <option value="C">C</option>
                   <option value="D">D</option>
                   <option value="E">E</option>
-                  <option value="F">F</option>
-                  <option value="G">G</option>
                 </select>
               </div>
-              <p class="helper">대분류를 선택하면 중분류가 활성화됩니다.</p>
+              <p class="helper">1단계를 선택하면 2단계가 활성화됩니다.</p>
             </div>
 
             <div class="field">
-              <label for="catB">중분류</label>
+              <label for="cat2">2단계</label>
               <div class="select">
-                <select id="catB" aria-label="중분류 선택" disabled>
-                  <option value="" selected disabled>대분류를 먼저 선택하세요</option>
+                <select id="cat2" aria-label="2단계 선택" disabled>
+                  <option value="" selected disabled>1단계를 먼저 선택하세요</option>
                 </select>
               </div>
-              <p class="helper">예: A 선택 시 A-1 ~ A-5</p>
             </div>
 
             <div class="field">
-              <label for="catC">소분류</label>
+              <label for="cat3">3단계</label>
               <div class="select">
-                <select id="catC" aria-label="소분류 선택" disabled>
-                  <option value="" selected disabled>중분류를 먼저 선택하세요</option>
+                <select id="cat3" aria-label="3단계 선택" disabled>
+                  <option value="" selected disabled>2단계를 먼저 선택하세요</option>
                 </select>
               </div>
-              <p class="helper">예: A-1 선택 시 A-1-1 ~ A-1-5</p>
+            </div>
+
+            <div class="field">
+              <label for="cat4">4단계</label>
+              <div class="select">
+                <select id="cat4" aria-label="4단계 선택" disabled>
+                  <option value="" selected disabled>3단계를 먼저 선택하세요</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="cat5">5단계</label>
+              <div class="select">
+                <select id="cat5" aria-label="5단계 선택" disabled>
+                  <option value="" selected disabled>4단계를 먼저 선택하세요</option>
+                </select>
+              </div>
+              <p class="helper">마지막 단계(리프)를 선택하면 가격이 표시됩니다.</p>
             </div>
           </div>
+          <!-- ▲▲ 여기까지 5단계 UI ▲▲ -->
 
           <div class="actions">
             <a id="btn-quote" class="button primary">무료 견적 받기</a>
@@ -369,150 +386,321 @@
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ====== 모든 요소 참조를 한 곳에서 선언 ======
-    const catA = document.getElementById('catA');
-    const catB = document.getElementById('catB');
-    const catC = document.getElementById('catC');
+    /* =========================================================
+       5단계 트리 선택: A~E JSON 로드 → 정규화 → 옵션 생성
+       JSON 경로: /data/A_data.json ... /data/E_data.json
+       가격은 JSON의 price / price_range 문자열을 그대로 사용
+    ==========================================================*/
 
-    const btnQuote = document.getElementById('btn-quote');
-    const btnReset = document.getElementById('btn-reset');
+    // DOM 참조
+    const $ = (id) => document.getElementById(id);
+    const cat1 = $('cat1'), cat2 = $('cat2'), cat3 = $('cat3'), cat4 = $('cat4'), cat5 = $('cat5');
 
-    const boxResult = document.getElementById('result');
-    const elPath = document.getElementById('selectedPath');
-    const elPrice = document.getElementById('price');
-    const elStatus = document.getElementById('status');
+    const btnQuote = $('btn-quote');
+    const btnReset = $('btn-reset');
+
+    const boxResult = $('result');
+    const elPath = $('selectedPath');
+    const elPrice = $('price');
+    const elStatus = $('status');
 
     // 문의 섹션 요소
-    const inquirySection = document.getElementById('inquirySection');
-    const inqName = document.getElementById('inqName');
-    const inqPhone = document.getElementById('inqPhone');
-    const inqAddress = document.getElementById('inqAddress');
-    const inqEmail = document.getElementById('inqEmail');
-    const inqTime = document.getElementById('inqTime');
-    const inqMemo = document.getElementById('inqMemo');
-    const btnSendInquiry = document.getElementById('btn-send-inquiry');
-    const btnClearInquiry = document.getElementById('btn-clear-inquiry');
-    const inquiryToast = document.getElementById('inquiryToast');
+    const inquirySection = $('inquirySection');
+    const inqName = $('inqName');
+    const inqPhone = $('inqPhone');
+    const inqAddress = $('inqAddress');
+    const inqEmail = $('inqEmail');
+    const inqTime = $('inqTime');
+    const inqMemo = $('inqMemo');
+    const btnSendInquiry = $('btn-send-inquiry');
+    const btnClearInquiry = $('btn-clear-inquiry');
+    const inquiryToast = $('inquiryToast');
 
-    // ====== 공통 유틸 ======
-    const fmtKRW = (n) => n.toLocaleString('ko-KR') + '원';
+    // JSON 소스 매핑 (필요 시 경로만 교체)
+    const DATA_SOURCES = {
+      A: '/data/A_data.json',
+      B: '/data/B_data.json',
+      C: '/data/C_data.json',
+      D: '/data/D_data.json',
+      E: '/data/E_data.json',
+    };
 
-    // ====== 중/소분류 옵션 생성 ======
-    function setOptions(select, values, placeholder) {
-      select.innerHTML = '';
+    // 공통 옵션 세팅
+    const setOptions = (sel, items, placeholder) => {
+      sel.innerHTML = '';
       const opt0 = document.createElement('option');
       opt0.value = '';
       opt0.textContent = placeholder;
-      opt0.disabled = true;
-      opt0.selected = true;
-      select.appendChild(opt0);
-      values.forEach(v => {
+      opt0.disabled = true; opt0.selected = true;
+      sel.appendChild(opt0);
+      for (const it of items) {
         const opt = document.createElement('option');
-        opt.value = v;
-        opt.textContent = v;
-        select.appendChild(opt);
-      });
+        opt.value = it.code || it.value || it.id;
+        opt.textContent = it.name || it.label || it.content || it.code;
+        if (it.price || it.price_range) {
+          opt.dataset.price = it.price || it.price_range;
+        }
+        sel.appendChild(opt);
+      }
+    };
+
+    // 다양한 스키마(A/B/C/D/E)를 공통 트리 {code,name,price?,children[]}로 정규화
+    const node = (code, name, price, children = []) => ({ code, name, price, children });
+
+    function normalizeA(raw, letter) {
+      // 예시 스키마: {공간유형:{A:{name, services:{A-1:{name, cats1:{A-1-1:{name, price} ...}, cats2, cats3}}}}}
+      const rootA = raw?.['공간유형']?.[letter];
+      const root = node(letter, rootA?.name || letter);
+      const services = rootA?.services || {};
+      for (const [svcCode, svc] of Object.entries(services)) {
+        const svcNode = node(svcCode, svc?.name || svcCode);
+        const pushCats = (parent, cats) => {
+          for (const [k, v] of Object.entries(cats || {})) {
+            const n = node(k, v?.name || k, v?.price || v?.price_range || '');
+            // 하위 cats*가 더 있으면 중간 노드로 처리
+            if (v?.cats1 || v?.cats2 || v?.cats3) {
+              n.price = '';
+              if (v?.cats1) pushCats(n, v.cats1);
+              if (v?.cats2) pushCats(n, v.cats2);
+              if (v?.cats3) pushCats(n, v.cats3);
+            }
+            parent.children.push(n);
+          }
+        };
+        if (svc?.cats1 || svc?.cats2 || svc?.cats3) {
+          if (svc.cats1) pushCats(svcNode, svc.cats1);
+          if (svc.cats2) pushCats(svcNode, svc.cats2);
+          if (svc.cats3) pushCats(svcNode, svc.cats3);
+        }
+        root.children.push(svcNode);
+      }
+      return root;
     }
 
-    function range(n) {
-      return Array.from({
-        length: n
-      }, (_, i) => i + 1);
+    function normalizeBLike(raw, letter) {
+      // 예시 스키마: { [letter]: { content, subcategories:{ code:{ content,name, price/price_range, subcategories:{...}}}}}
+      const top = raw?.[letter];
+      const build = (code, obj) => {
+        const nm = obj?.name || obj?.content || code;
+        const price = obj?.price || obj?.price_range || '';
+        const sc = obj?.subcategories;
+        const n = node(code, nm, price);
+        if (sc && typeof sc === 'object') {
+          n.price = '';
+          for (const [k, v] of Object.entries(sc)) n.children.push(build(k, v));
+        }
+        return n;
+      };
+      const root = node(letter, top?.content || top?.name || letter);
+      const sc = top?.subcategories || {};
+      for (const [k, v] of Object.entries(sc)) root.children.push(build(k, v));
+      return root;
     }
 
-    // ====== 가격 계산 로직 ======
-    function calcPrice(a, b, c) {
-      const idxA = a.charCodeAt(0) - 'A'.charCodeAt(0);
-      const mid = Number(b.split('-')[1]);
-      const sub = Number(c.split('-')[2]);
-      const n = idxA * 25 + (mid - 1) * 5 + (sub - 1) + 1;
-      return n * 1000;
+    function normalizeE(raw) {
+      // 예시 스키마: { code:'E', name:'...', children:[...] } (각 child 동일 형태)
+      const build = (obj) => {
+        const n = node(obj.code, obj.name, obj.price || obj.price_range || '');
+        const ch = obj.children || [];
+        if (ch.length) {
+          n.price = '';
+          for (const c of ch) n.children.push(build(c));
+        }
+        return n;
+      };
+      return build(raw);
     }
 
-    // ====== 이벤트 리스너: 견적 계산 및 UI 제어 ======
-    catA.addEventListener('change', () => {
-      const a = catA.value;
-      if (!a) return;
-      const mids = range(5).map(i => `${a}-${i}`);
-      setOptions(catB, mids, '중분류 선택');
-      catB.disabled = false;
-      setOptions(catC, [], '중분류를 먼저 선택하세요');
-      catC.disabled = true;
+    function normalizeTree(letter, raw) {
+      if (letter === 'A') return normalizeA(raw, letter);
+      if (letter === 'B' || letter === 'C' || letter === 'D') return normalizeBLike(raw, letter);
+      if (letter === 'E') return normalizeE(raw);
+      return node(letter, letter);
+    }
+
+    // fetch + 캐시
+    const cache = new Map();
+    async function loadTopData(letter) {
+      if (cache.has(letter)) return cache.get(letter);
+      const url = DATA_SOURCES[letter];
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`데이터 로드 실패: ${url}`);
+      const json = await res.json();
+      const tree = normalizeTree(letter, json);
+      cache.set(letter, tree);
+      return tree;
+    }
+
+    // 경로에 따라 하위 children 조회
+    function walk(tree, codes) {
+      let cur = tree;
+      if (!cur) return { cur: null, children: [] };
+      for (const c of codes) {
+        if (!c) break;
+        const next = (cur.children || []).find(n => n.code === c);
+        if (!next) return { cur, children: [] };
+        cur = next;
+      }
+      return { cur, children: cur.children || [] };
+    }
+
+    // 하위 리셋
+    function resetBelow(level /* 2..5 */) {
+      const arr = [cat2, cat3, cat4, cat5];
+      for (let i = level - 2; i < arr.length; i++) {
+        if (i >= 0) {
+          setOptions(arr[i], [], `${i + 2}단계를 먼저 선택하세요`);
+          arr[i].disabled = true;
+        }
+      }
       boxResult.style.display = 'none';
       elStatus.style.display = 'none';
-      inquirySection.style.display = 'none'; // 견적 재선택 시 문의 섹션 숨기기
+      inquirySection.style.display = 'none';
+      inquiryToast.style.display = 'none';
+    }
+
+    // 트리 상태
+    let currentTree = null;
+
+    // 1단계
+    cat1.addEventListener('change', async () => {
+      try {
+        resetBelow(2);
+        const top = cat1.value; // 'A'..'E'
+        if (!top) return;
+        currentTree = await loadTopData(top);
+
+        // 2단계 = root.children (top 노드 자체 포함돼 있을 수 있어 codes=[top]로 walk)
+        const { children } = walk(currentTree, [top]);
+        setOptions(cat2, children, '2단계 선택');
+        cat2.disabled = false;
+      } catch (e) {
+        console.error(e);
+        elStatus.textContent = '데이터 로드에 실패했습니다. 새로고침 후 다시 시도해 주세요.';
+        elStatus.style.display = 'block';
+      }
     });
 
-    catB.addEventListener('change', () => {
-      const b = catB.value;
-      if (!b) return;
-      const subs = range(5).map(i => `${b}-${i}`);
-      setOptions(catC, subs, '소분류 선택');
-      catC.disabled = false;
-      boxResult.style.display = 'none';
-      elStatus.style.display = 'none';
-      inquirySection.style.display = 'none'; // 견적 재선택 시 문의 섹션 숨기기
+    // 2단계
+    cat2.addEventListener('change', () => {
+      resetBelow(3);
+      const top = cat1.value, s2 = cat2.value;
+      if (!top || !s2 || !currentTree) return;
+      const { children } = walk(currentTree, [top, s2]);
+      if (children.length) {
+        setOptions(cat3, children, '3단계 선택');
+        cat3.disabled = false;
+      } else {
+        // 2단계가 리프
+        const sel = cat2.selectedOptions[0];
+        const priceStr = sel?.dataset?.price || '';
+        elPath.textContent = [top, s2].join(' > ');
+        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
+        boxResult.style.display = 'block';
+        inquirySection.style.display = 'block';
+      }
     });
 
+    // 3단계
+    cat3.addEventListener('change', () => {
+      resetBelow(4);
+      const top = cat1.value, s2 = cat2.value, s3 = cat3.value;
+      if (!top || !s2 || !s3 || !currentTree) return;
+      const { children } = walk(currentTree, [top, s2, s3]);
+      if (children.length) {
+        setOptions(cat4, children, '4단계 선택');
+        cat4.disabled = false;
+      } else {
+        // 3단계가 리프
+        const sel = cat3.selectedOptions[0];
+        const priceStr = sel?.dataset?.price || '';
+        elPath.textContent = [top, s2, s3].join(' > ');
+        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
+        boxResult.style.display = 'block';
+        inquirySection.style.display = 'block';
+      }
+    });
+
+    // 4단계
+    cat4.addEventListener('change', () => {
+      resetBelow(5);
+      const top = cat1.value, s2 = cat2.value, s3 = cat3.value, s4 = cat4.value;
+      if (!top || !s2 || !s3 || !s4 || !currentTree) return;
+      const { children } = walk(currentTree, [top, s2, s3, s4]);
+      if (children.length) {
+        setOptions(cat5, children, '5단계 선택');
+        cat5.disabled = false;
+      } else {
+        // 4단계가 리프
+        const sel = cat4.selectedOptions[0];
+        const priceStr = sel?.dataset?.price || '';
+        elPath.textContent = [top, s2, s3, s4].join(' > ');
+        elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
+        boxResult.style.display = 'block';
+        inquirySection.style.display = 'block';
+      }
+    });
+
+    // 5단계
+    cat5.addEventListener('change', () => {
+      const top = cat1.value, s2 = cat2.value, s3 = cat3.value, s4 = cat4.value, s5 = cat5.value;
+      if (!top || !s2 || !s3 || !s4 || !s5) return;
+      const sel = cat5.selectedOptions[0];
+      const priceStr = sel?.dataset?.price || '';
+      elPath.textContent = [top, s2, s3, s4, s5].join(' > ');
+      elPrice.textContent = priceStr || '상담 필요(가격 정보 없음)';
+      boxResult.style.display = 'block';
+      inquirySection.style.display = 'block';
+    });
+
+    // "무료 견적 받기" → 필수 선택 확인(리프 선택 시 이미 결과 노출됨)
     btnQuote.addEventListener('click', () => {
-      const a = catA.value,
-        b = catB.value,
-        c = catC.value;
-      if (!a || !b || !c) {
+      const ok =
+        !!cat1.value &&
+        !!cat2.value &&
+        !!cat3.value &&
+        (!!cat4.value) &&
+        (!!cat5.value || cat5.disabled); // 4단계 리프 케이스 허용
+      if (!ok) {
+        elStatus.textContent = '필수 단계를 모두 선택해 주세요.';
         elStatus.style.display = 'block';
         boxResult.style.display = 'none';
         inquirySection.style.display = 'none';
-        return;
+      } else {
+        elStatus.style.display = 'none';
+        // 결과는 각 change 핸들러에서 이미 노출됨
       }
-      elStatus.style.display = 'none';
-      const price = calcPrice(a, b, c);
-      elPath.textContent = `${c}`;
-      elPrice.textContent = fmtKRW(price);
-      boxResult.style.display = 'block';
-      inquirySection.style.display = 'block';
-      inquiryToast.style.display = 'none';
-      inquiryToast.textContent = '';
-      inquiryToast.className = 'toast';
     });
 
+    // 초기화
     btnReset.addEventListener('click', () => {
-      catA.value = '';
-      setOptions(catB, [], '대분류를 먼저 선택하세요');
-      catB.disabled = true;
-      setOptions(catC, [], '중분류를 먼저 선택하세요');
-      catC.disabled = true;
+      cat1.value = '';
+      setOptions(cat2, [], '1단계를 먼저 선택하세요');
+      setOptions(cat3, [], '2단계를 먼저 선택하세요');
+      setOptions(cat4, [], '3단계를 먼저 선택하세요');
+      setOptions(cat5, [], '4단계를 먼저 선택하세요');
+      cat2.disabled = true; cat3.disabled = true; cat4.disabled = true; cat5.disabled = true;
+
       boxResult.style.display = 'none';
       elStatus.style.display = 'none';
       inquirySection.style.display = 'none';
 
       // 문의 폼 초기화
-      [inqName, inqPhone, inqAddress, inqEmail].forEach(i => i.value = '');
+      [inqName, inqPhone, inqAddress, inqEmail, inqMemo].forEach(i => i.value = '');
       inqTime.value = '';
-      inqMemo.value = '';
-      inquiryToast.style.display = 'none';
-    });
-
-    // 입력 지우기(문의 섹션만)
-    btnClearInquiry.addEventListener('click', () => {
-      [inqName, inqPhone, inqAddress, inqEmail].forEach(i => i.value = '');
-      inqTime.value = '';
-      inqMemo.value = '';
       inquiryToast.style.display = 'none';
       inquiryToast.textContent = '';
       inquiryToast.className = 'toast';
     });
 
-    // ====== 문의 저장: 유효성 검사, 로딩 상태, 자동 초기화 포함 ======
+    /* ====== 문의 저장: 유효성 검사, 로딩 상태, 자동 초기화 포함 ====== */
     btnSendInquiry.addEventListener('click', async () => {
-      const a = catA.value,
-        b = catB.value,
-        c = catC.value;
       const name = inqName.value.trim();
       const phone = inqPhone.value.trim();
       const email = inqEmail.value.trim();
 
       const phoneRegex = /^\d{2,3}-\d{3,4}-\d{4}$/;
-      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
       if (!name || !phone) {
         inquiryToast.className = 'toast err';
@@ -520,14 +708,12 @@
         inquiryToast.style.display = 'block';
         return;
       }
-
       if (!phoneRegex.test(phone)) {
         inquiryToast.className = 'toast err';
         inquiryToast.textContent = "유효한 전화번호 형식이 아닙니다 (예: 010-1234-5678)";
         inquiryToast.style.display = 'block';
         return;
       }
-
       if (email && !emailRegex.test(email)) {
         inquiryToast.className = 'toast err';
         inquiryToast.textContent = "유효한 이메일 형식이 아닙니다 (예: example@domain.com)";
@@ -541,14 +727,17 @@
 
       try {
         const doc = {
-          categoryTop: a,
-          categoryMid: b,
-          categorySub: c,
-          price: calcPrice(a, b, c),
+          category1: cat1.value || null,
+          category2: cat2.value || null,
+          category3: cat3.value || null,
+          category4: cat4.value || null,
+          category5: cat5.value || null,
+          categoryPath: [cat1.value, cat2.value, cat3.value, cat4.value, cat5.value].filter(Boolean).join(' > ') || null,
+          price: elPrice.textContent || null, // 화면에 표시된 가격 문자열을 그대로 저장
           name: name,
           phone: phone,
-          address: inqAddress.value.trim(),
-          email: email,
+          address: inqAddress.value.trim() || null,
+          email: email || null,
           preferredTime: inqTime.value || null,
           memo: inqMemo.value.trim() || null,
           createdAt: serverTimestamp(),
@@ -574,7 +763,7 @@
       }
     });
 
-    // ====== 설문 결과 링크용 UUID 처리 (기존 코드) ======
+    /* ====== 설문 결과 링크용 UUID 처리 (기존 코드 유지) ====== */
     const SITE_BASE = window.__SITE_BASE_PATH || "";
     const RESULT_PATH = "owner-survey/survey-result.html";
     const links = Array.from(document.querySelectorAll('a.js-myresult-link'));
@@ -593,19 +782,7 @@
       const u2 = localStorage.getItem("surveyUUID");
       if (u2) return u2;
       try {
-        const [{
-          initializeApp
-        }, {
-          getAuth,
-          onAuthStateChanged
-        }, {
-          getFirestore,
-          collection,
-          query,
-          orderBy,
-          limit,
-          getDocs
-        }] =
+        const [{ initializeApp }, { getAuth, onAuthStateChanged }, { getFirestore, collection, query, orderBy, limit, getDocs }] =
           await Promise.all([
             import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
             import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
