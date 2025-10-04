@@ -52,7 +52,8 @@
 
     .quote-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 1fr; /* 5단계에 맞춰 확장 */
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      /* 5단계에 맞춰 확장 */
       gap: 1rem;
     }
 
@@ -693,7 +694,7 @@
       inquiryToast.className = 'toast';
     });
 
-    /* ====== 문의 저장: 유효성 검사, 로딩 상태, 자동 초기화 포함 ====== */
+    // ====== 문의 저장: 유효성 검사, 로딩 상태, 자동 초기화 포함 ======
     btnSendInquiry.addEventListener('click', async () => {
       const name = inqName.value.trim();
       const phone = inqPhone.value.trim();
@@ -721,19 +722,48 @@
         return;
       }
 
+      // ▼ 단계별 선택값/라벨 추출 유틸
+      const pick = (sel) =>
+        (sel && !sel.disabled && sel.value)
+          ? { code: sel.value, name: sel.selectedOptions[0].textContent.trim() }
+          : null;
+
+      const s1 = pick(cat1);
+      const s2 = pick(cat2);
+      const s3 = pick(cat3);
+      const s4 = pick(cat4);
+      const s5 = pick(cat5);
+
+      const selectedList = [s1, s2, s3, s4, s5].filter(Boolean);
+      const codePath = selectedList.map(x => x.code).join(' > ') || null;
+      const namePath = selectedList.map(x => x.name).join(' > ') || null;
+
       btnSendInquiry.textContent = '전송 중...';
       btnSendInquiry.disabled = true;
       inquiryToast.style.display = 'none';
 
       try {
         const doc = {
-          category1: cat1.value || null,
-          category2: cat2.value || null,
-          category3: cat3.value || null,
-          category4: cat4.value || null,
-          category5: cat5.value || null,
-          categoryPath: [cat1.value, cat2.value, cat3.value, cat4.value, cat5.value].filter(Boolean).join(' > ') || null,
-          price: elPrice.textContent || null, // 화면에 표시된 가격 문자열을 그대로 저장
+          // 기존 코드(호환 유지)
+          category1: s1?.code || null,
+          category2: s2?.code || null,
+          category3: s3?.code || null,
+          category4: s4?.code || null,
+          category5: s5?.code || null,
+          categoryPath: codePath,
+
+          // ✅ 추가: 텍스트(라벨) 저장
+          category1Text: s1?.name || null,
+          category2Text: s2?.name || null,
+          category3Text: s3?.name || null,
+          category4Text: s4?.name || null,
+          category5Text: s5?.name || null,
+          categoryNamePath: namePath,
+
+          // (옵션) 구조화된 배열도 함께 저장하면 후처리 편해요
+          // categories: selectedList,  // 주석 해제 시 [{code,name}, ...] 형태로 저장
+
+          price: elPrice.textContent || null, // 화면 표시 가격 그대로
           name: name,
           phone: phone,
           address: inqAddress.value.trim() || null,
@@ -743,7 +773,9 @@
           createdAt: serverTimestamp(),
           sourcePage: location.pathname + location.search
         };
+
         await addDoc(collection(db, 'inquiries'), doc);
+
         inquiryToast.className = 'toast ok';
         inquiryToast.textContent = '접수되었습니다. 빠르게 확인 후 연락드리겠습니다.';
         inquiryToast.style.display = 'block';
