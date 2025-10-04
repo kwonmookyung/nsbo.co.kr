@@ -571,7 +571,7 @@
         currentTree = await loadTopData(top);
 
         // 2단계 = root.children (top 노드 자체 포함돼 있을 수 있어 codes=[top]로 walk)
-        const { children } = walk(currentTree, [top]);
+        const { children } = walk(currentTree, []);
         setOptions(cat2, children, '2단계 선택');
         cat2.disabled = false;
       } catch (e) {
@@ -586,7 +586,7 @@
       resetBelow(3);
       const top = cat1.value, s2 = cat2.value;
       if (!top || !s2 || !currentTree) return;
-      const { children } = walk(currentTree, [top, s2]);
+      const { children } = walk(currentTree, [s2]);
       if (children.length) {
         setOptions(cat3, children, '3단계 선택');
         cat3.disabled = false;
@@ -606,7 +606,7 @@
       resetBelow(4);
       const top = cat1.value, s2 = cat2.value, s3 = cat3.value;
       if (!top || !s2 || !s3 || !currentTree) return;
-      const { children } = walk(currentTree, [top, s2, s3]);
+      const { children } = walk(currentTree, [s2, s3]);
       if (children.length) {
         setOptions(cat4, children, '4단계 선택');
         cat4.disabled = false;
@@ -626,7 +626,7 @@
       resetBelow(5);
       const top = cat1.value, s2 = cat2.value, s3 = cat3.value, s4 = cat4.value;
       if (!top || !s2 || !s3 || !s4 || !currentTree) return;
-      const { children } = walk(currentTree, [top, s2, s3, s4]);
+      const { children } = walk(currentTree, [s2, s3, s4]);
       if (children.length) {
         setOptions(cat5, children, '5단계 선택');
         cat5.disabled = false;
