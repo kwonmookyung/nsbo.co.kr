@@ -615,7 +615,7 @@
     function normalizeTree(letter, raw) {
       if (letter === 'A') return normalizeA(raw, letter);
       if (letter === 'B' || letter === 'C' || letter === 'D') return normalizeBLike(raw, letter);
-      if (letter === 'E') return normalizeE(raw);
+      if (letter === 'E') return normalizeBLike(raw, letter);
       return node(letter, letter);
     }
 
