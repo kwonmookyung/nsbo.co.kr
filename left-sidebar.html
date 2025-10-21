@@ -7,12 +7,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="assets/css/main.css" />
 	<style>
-		header.major.no-underline::after {
-			content: none !important;
-			display: none !important;
-		}
-
-		/* ===== 모바일 헤더 제어 ===== */
+		/* =========================
+     모바일 헤더/로고 제어
+  ========================== */
 		@media screen and (max-width: 1024px) {
 			#header {
 				display: none !important;
@@ -44,7 +41,9 @@
 			}
 		}
 
-		/* ===== 4:3 라운드 직사각 썸네일 ===== */
+		/* =========================
+     4:3 라운드 직사각 썸네일
+  ========================== */
 		.box.post .image.left {
 			width: 320px;
 			/* 데스크탑 기본 폭 */
@@ -85,6 +84,47 @@
 			.box.post .image.left+.inner {
 				text-align: center;
 			}
+		}
+
+		/* =========================
+     헤더 밑줄 제어
+     - 이 헤더에만 밑줄(가짜/진짜) 제거
+  ========================== */
+		header.major.no-underline::after {
+			content: none !important;
+			display: none !important;
+			/* 템플릿의 가짜 밑줄 제거 */
+		}
+
+		header.major.no-underline p {
+			text-decoration: none !important;
+			border: 0 !important;
+			box-shadow: none !important;
+			background-image: none !important;
+		}
+
+		header.major.no-underline p::before,
+		header.major.no-underline p::after {
+			content: none !important;
+			border: 0 !important;
+			box-shadow: none !important;
+			background: none !important;
+		}
+
+		/* 문장 간격 (br 대신) */
+		header.major p {
+			margin-top: .5rem;
+		}
+
+		/* =========================
+     텍스트에만 밑줄 주고 싶을 때
+     - 필요한 문장에만 class="underlined" 부여
+     - 사용하지 않으면 무시됨
+  ========================== */
+		.underlined {
+			text-decoration: underline;
+			text-decoration-thickness: 2px;
+			text-underline-offset: 6px;
 		}
 	</style>
 </head>
