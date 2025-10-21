@@ -1,12 +1,13 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="ko">
 
 <head>
-	<title>솔루션 | 착한소상공인지원마켓</title>
 	<meta charset="utf-8" />
+	<title>솔루션 | 착한소상공인지원마켓</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="assets/css/main.css" />
 	<style>
+		/* ===== 모바일 헤더 제어 ===== */
 		@media screen and (max-width: 1024px) {
 			#header {
 				display: none !important;
@@ -20,39 +21,34 @@
 				font-size: 1.2em;
 				font-weight: bold;
 				color: #000 !important;
-				background: white;
+				background: #fff;
 				padding: 0.3em 0.6em;
 				border-radius: 4px;
 				z-index: 2000;
 				text-decoration: none;
-				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+				box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
 			}
 
-			@media screen and (max-width: 1024px) {
+			/* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
+			img[src*="logo.jpg"] {
+				display: none !important;
+			}
 
-				/* 혹시 다른 위치에서 logo.jpg가 불려오는 것까지 제거 */
-				img[src*="logo.jpg"] {
-					display: none !important;
-				}
-
-				.wrapper.style1 {
-					margin-top: 10px !important;
-					/* 필요시 더 줄여도 됩니다 */
-				}
+			.wrapper.style1 {
+				margin-top: 10px !important;
 			}
 		}
 
-		/* 가로가 긴 4:3 썸네일 (원형 → 라운드 직사각형) */
+		/* ===== 4:3 라운드 직사각 썸네일 ===== */
 		.box.post .image.left {
 			width: 320px;
 			/* 데스크탑 기본 폭 */
 			aspect-ratio: 4 / 3;
 			/* 가로:세로 = 4:3 */
 			height: auto;
-			/* aspect-ratio가 높이 계산 */
 			min-width: 320px;
 			border-radius: 14px !important;
-			/* 원형 덮어쓰기 */
+			/* 기존 원형 인라인 덮어쓰기 */
 			overflow: hidden;
 			margin-right: 1.5rem;
 		}
@@ -61,7 +57,6 @@
 			width: 100%;
 			height: 100%;
 			object-fit: cover;
-			/* 중앙 크롭로 꽉 채우기 */
 			display: block;
 		}
 
@@ -90,8 +85,9 @@
 </head>
 
 <body class="is-preload">
-	<div id="page-wrapper">
+	<a id="mobile-logo" href="index.html" style="display:none">착한소상공인지원마켓</a>
 
+	<div id="page-wrapper">
 		<!-- Header -->
 		<div id="header"
 			style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 2em; background-color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
@@ -100,11 +96,11 @@
 					<img src="images/logo.jpg" alt="착한소상공인지원마켓 로고" style="height: 80px;">
 				</a>
 			</div>
-
 			<nav id="nav">
 				<ul>
 					<li><a href="kakao-login.html" style="font-size: 0.85em;">로그인</a></li>
-					<li><a href="mypage.html" style="font-size: 0.85em;">마이페이지</a>
+					<li>
+						<a href="mypage.html" style="font-size: 0.85em;">마이페이지</a>
 						<ul>
 							<li><a href="mypage.html">내 정보 보기</a></li>
 							<li><a class="js-myresult-link" href="owner-survey/survey-result.html">내 설문조사 결과 보기</a></li>
@@ -128,8 +124,6 @@
 			</nav>
 		</div>
 
-
-
 		<!-- Main -->
 		<section class="wrapper style1" style="margin-top: 100px;">
 			<div class="container">
@@ -140,10 +134,11 @@
 				</header>
 
 				<div class="container">
+					<!-- 1행 -->
 					<div class="row gtr-200">
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution1.jpg" alt="인테리어" />
 								</a>
 								<div class="inner">
@@ -154,7 +149,7 @@
 						</section>
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution2.jpg" alt="전문 클리닝" />
 								</a>
 								<div class="inner">
@@ -166,10 +161,11 @@
 						</section>
 					</div>
 
+					<!-- 2행 -->
 					<div class="row gtr-200">
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution3.jpg" alt="설치 및 수리" />
 								</a>
 								<div class="inner">
@@ -180,7 +176,7 @@
 						</section>
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution4.jpg" alt="맞춤 제작" />
 								</a>
 								<div class="inner">
@@ -191,10 +187,11 @@
 						</section>
 					</div>
 
+					<!-- 3행 -->
 					<div class="row gtr-200">
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution5.jpg" alt="렌탈 서비스" />
 								</a>
 								<div class="inner">
@@ -205,7 +202,7 @@
 						</section>
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution6.jpg" alt="행정 절차" />
 								</a>
 								<div class="inner">
@@ -216,10 +213,11 @@
 						</section>
 					</div>
 
+					<!-- 4행 -->
 					<div class="row gtr-200">
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution7.jpg" alt="통합 마케팅" />
 								</a>
 								<div class="inner">
@@ -230,7 +228,7 @@
 						</section>
 						<section class="col-6 col-12-narrower">
 							<div class="box post">
-								<a href="#" class="image left" style="border-radius: 50%; overflow: hidden;">
+								<a href="#" class="image left">
 									<img src="images/solution8.jpg" alt="고객문의" />
 								</a>
 								<div class="inner">
@@ -241,45 +239,43 @@
 						</section>
 					</div>
 				</div>
-
+			</div>
 		</section>
-	</div>
-	</div>
 
-	<!-- CTA -->
-	<section id="cta" class="wrapper style3">
-		<div class="container">
-			<header>
-				<h2>지금 바로 우리 솔루션을 경험해보세요.</h2>
-				<a href="two-sidebar.html" class="button">문의하기</a>
-			</header>
-		</div>
-	</section>
+		<!-- CTA -->
+		<section id="cta" class="wrapper style3">
+			<div class="container">
+				<header>
+					<h2>지금 바로 우리 솔루션을 경험해보세요.</h2>
+					<a href="two-sidebar.html" class="button">문의하기</a>
+				</header>
+			</div>
+		</section>
 
-	<!-- Footer -->
-	<footer id="footer">
-		<div class="container">
-			<section>
-				<h3>착한소상공인지원마켓 정보</h3>
-				<p>
-					상호명: 만두<br>
-					대표자: 권무경<br>
-					사업자등록번호: 853-41-01293<br>
-					통신판매업신고번호: 2025-서울동대문-1455호<br>
-					주소: 서울특별시 동대문구 장한로14길 81, 101동 3층 303호<br>
-					이메일: kmook1112@gmail.com<br>
-					고객센터: 010-3310-2885 (평일 10:00 ~ 17:00)
-				</p>
-			</section>
-			<ul class="copyright">
-				<li>&copy; 착한소상공인지원마켓. All rights reserved.</li>
-				<li>Powered by <a href="https://html5up.net" target="_blank">HTML5 UP</a></li>
-			</ul>
-		</div>
-	</footer>
-	</div>
-	</section>
-	</div>
+		<!-- Footer -->
+		<footer id="footer">
+			<div class="container">
+				<section>
+					<h3>착한소상공인지원마켓 정보</h3>
+					<p>
+						상호명: 만두<br>
+						대표자: 권무경<br>
+						사업자등록번호: 853-41-01293<br>
+						통신판매업신고번호: 2025-서울동대문-1455호<br>
+						주소: 서울특별시 동대문구 장한로14길 81, 101동 3층 303호<br>
+						이메일: kmook1112@gmail.com<br>
+						고객센터: 010-3310-2885 (평일 10:00 ~ 17:00)
+					</p>
+				</section>
+				<ul class="copyright">
+					<li>&copy; 착한소상공인지원마켓. All rights reserved.</li>
+					<li>Powered by <a href="https://html5up.net" target="_blank">HTML5 UP</a></li>
+				</ul>
+			</div>
+		</footer>
+	</div><!-- /#page-wrapper -->
+
+	<!-- UUID 링크 처리 스크립트 -->
 	<script type="module">
 		// ==== 배포 경로가 도메인 루트가 아닐 때만 설정 (예: '/nbso') ====
 		const SITE_BASE = window.__SITE_BASE_PATH || ""; // 필요시 window.__SITE_BASE_PATH = '/nbso';
@@ -382,7 +378,6 @@
 			setLinksHref(uuid);                   // 확보되면 링크에 반영
 		})();
 	</script>
-
 
 	<!-- Scripts -->
 	<script src="assets/js/jquery.min.js"></script>
